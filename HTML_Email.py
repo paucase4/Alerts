@@ -1,0 +1,304 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[3]:
+
+
+import os
+import smtplib
+import random
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.message import EmailMessage
+from email.utils import make_msgid
+import mimetypes
+import yfinance as yf
+from datetime import datetime,timedelta,date
+import urllib3 as u3
+HAPPY = ["stonks.jpg","yes_youre_this.jpg"]
+RELAX = [""]
+MOTIVATION = ["willitbeeasy.jpg","struggle_today.jpg","comeback_stronger.jpg"]
+
+SMTP_SERVER = 'smtp.gmail.com'
+SMTP_PORT = 587 
+GMAIL_USERNAME = 'stocknotificacions@gmail.com' 
+GMAIL_PASSWORD = ''
+def get_pct(ticker):
+    price = get_price(ticker)
+    previous_close = round(yf.download(ticker)['Close'][-2],3)
+    change = 1 - (price / previous_close)
+    percent_change = round(change * 100,2)*(-1)
+    return percent_change
+
+def get_price(ticker):
+    a = ""
+    if connection():
+        data = yf.download(tickers=ticker, period='1d', interval='1m')
+        close=data['Close'][-1]
+    else:
+        print("No connection.")
+        return 0
+    return round(float(close),4)
+
+def connection():
+    http = u3.PoolManager()
+    try:
+        http.request('GET',"google.com")
+        return True
+    except:
+        return False
+
+def send(recipient,msg):
+        s = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        s.ehlo()
+        s.starttls()
+        s.ehlo()
+        s.login(GMAIL_USERNAME, GMAIL_PASSWORD)
+        s.sendmail(GMAIL_USERNAME, recipient, msg.as_string())
+        s.quit()
+
+class Emailer:
+    
+
+    def daily_email(self,recipient,tickers,name):
+        subject = "Preus del dia " + str(date.today()) + " a les 16:00."
+        body = str(name) + ", PREUS DEL DIA " + str(date.today()) + " a les 16:00."
+        html = "<html><body><p><b>{}</b></p>".format(name)
+        
+        
+        if isinstance(tickers,str):
+            ticker = tickers
+            perc = get_pct(ticker)
+            link = "https://finance.yahoo.com/quote/{}/".format(ticker)
+            price = get_price(ticker)
+            
+            try:
+                company_name = yf.Ticker(ticker).info['longName']
+            except:
+                company_name = ticker
+            if perc < 0:
+                body += "<br>El preu de <a href='{}'><b>{}</a></b> és <b style = color:#fb0f29>${}, {}%</b> negatiu.".format(link,company_name,price,perc)
+            else:
+                body += "<br>El preu de <a href='{}'><b>{}</a></b> és <b style = color:#00b52c>${}, {}%</b> positiu.".format(link,company_name,price,perc)
+            body += "</body></html>"
+        else:   
+            for idx,ticker in enumerate(tickers):
+                link = "https://finance.yahoo.com/quote/{}/".format(ticker)
+                perc = get_pct(ticker)
+                price = get_price(ticker)
+                try:
+                    company_name = yf.Ticker(ticker).info['longName']
+                except:
+                    company_name = ticker
+                if perc < 0:
+                    body += "<br>El preu de <a href='{}'><b>{}</a></b> és <b style = color:#fb0f29>${}, {}%</b> negatiu.".format(link,company_name,price,perc)
+                else:
+                    body += "<br>El preu de <a href='{}'><b>{}</a></b> és <b style = color:#00b52c>${}, {}%</b> positiu.".format(link,company_name,price,perc)
+                ## get price of yesterday close vs today and set colors
+                ## style="color:#00b52c" green
+                ## style="color:#fb0f29" red
+                ## link for stonks: https://codepen.io/havardob/pen/PoPaWaE
+            body += "</body></html>"
+        html = body.format(subtype = 'html')
+        msg = EmailMessage()
+        msg['Subject'] = subject
+        msg['From'] = GMAIL_USERNAME
+        msg['To'] = recipient
+        html = MIMEText(html,'html')
+        msg.set_content(html)
+        
+        send(recipient,msg)
+        
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+    def loss_email_content(self,ticker,price,percentage):
+        d = datetime.today()
+        day = str(date.today())
+        h = str(d.hour) 
+        m = str(d.minute)
+        s = str(d.second)
+        percentage = round(percentage,2)
+        if len(s) == 1:
+            s = "0" + s
+        if len(h) == 1:
+            h = "0" + h
+        if len(m) == 1:
+            m = "0" + m
+        link = "https://finance.yahoo.com/quote/" + ticker + "/"
+        try:
+            company_name = yf.Ticker(ticker).info['longName']
+        except:
+            company_name = ticker
+
+        subject = "CAIGUDA DEL {}% EN EL PREU DE {}".format(percentage,ticker)
+        body = "El preu de: <b>{}</b>, dia {} a les {}:{}:{} és <b>${}</b>".format(company_name,day,h,m,s,price)
+        b2 = "Comprova el preu a " + link
+        img = MOTIVATION[random.randint(0, 2)]
+        return subject,body,b2,img
+    
+    def loss_email(self, recipient, ticker, price, pc, img):
+        subject, body, b2, image = self.loss_email_content(ticker, price, pc)
+        yahoo_link = "https://finance.yahoo.com/quote/" + ticker + "/"
+        a = "{}\n{}".format(body,b2)
+        msg = EmailMessage()
+        msg['Subject'] = subject
+        msg['From'] = GMAIL_USERNAME
+        msg['To'] = recipient
+        
+        msg.set_content(body)
+
+        if img:
+            img_data = open(image, 'rb').read()
+            image_cid = make_msgid()
+            msg.add_alternative("""<html>
+    <body>
+        <p style="font-family:verdana">
+    
+        {body}</p>
+        <br>    
+        <p style="font-family:verdana"> {b2}</p>
+        
+        <img src="cid:{image_cid}">
+    </body>
+</html>
+""".format(body=body,b2=b2,image_cid=image_cid[1:-1]), subtype='html')
+            with open(image, 'rb') as img:
+                maintype, subtype = mimetypes.guess_type(img.name)[0].split('/')
+        
+                msg.get_payload()[1].add_related(img.read(), 
+                                             maintype=maintype, 
+                                             subtype=subtype, 
+                                             cid=image_cid)
+            
+        else:
+
+            ti= """<html>
+    <body>
+        <p style="font-family:verdana">
+        {body}
+        </p>
+        <br>
+        <p style="font-family:verdana">
+        {b2}
+        </p>
+        
+        <p> </p>
+    </body>
+</html>
+""".format(body=body,b2=b2, subtype='html')
+            
+            text = MIMEText(ti, 'html')
+            msg.set_content(text)
+        
+        send(recipient,msg)
+    def win_email_content(self,ticker,price,percentage):
+        d = datetime.today()
+        day = str(date.today())
+        h = str(d.hour) 
+        m = str(d.minute)
+        s = str(d.second)
+        percentage = round(percentage,2)
+        if len(s) == 1:
+            s = "0" + s
+        if len(h) == 1:
+            h = "0" + h
+        if len(m) == 1:
+            m = "0" + m
+        link = "https://finance.yahoo.com/quote/" + ticker + "/"
+        try:
+            company_name = yf.Ticker(ticker).info['longName']
+        except:
+            company_name = ticker
+        subject = "ESCALADA DEL {}% EN EL PREU DE {}".format(percentage,company_name)
+        body = "El preu de: <a href='{}'><b>{}</b></a>, dia {} a les {}:{}:{} és <b>${}</b>".format(link,company_name,day,h,m,s,price)
+        
+        return subject,body
+    
+    def win_email(self, recipient, ticker, price, pc):
+        subject, body = self.win_email_content(ticker, price, pc)
+        yahoo_link = "https://finance.yahoo.com/quote/" + ticker + "/"
+        a = body
+        msg = EmailMessage()
+        msg['Subject'] = subject
+        msg['From'] = GMAIL_USERNAME
+        msg['To'] = recipient
+        msg.set_content(body)
+
+        body = """<html>
+    <body>
+    
+   <h1 style = text-align:center>STOOONKS</h1>
+   <h2 style = color:green> {ei} </h2>
+        <p>
+
+        {body}
+
+        </p>
+
+        <br>    
+
+        <p>
+
+        </p>
+    </body>
+</html>
+""".format(ei=subject,body=body, subtype='html')
+        print(body)
+        body = MIMEText(body, 'html')
+        msg.set_content(body)
+        send(recipient,msg)
+        
+    def target_email(self,receiver, ticker, img, name):
+        yahoo_link = "https://finance.yahoo.com/quote/" + ticker + "/"
+        try:
+            company_name = yf.Ticker(ticker).info['longName']
+        except:
+            company_name = ticker
+        subject = "Oportunitat de compra a {}".format(company_name)
+        text = "{}, {} ha arribat al preu de compra indicat. \nLink de {} a Yahoo finance {}".format(name,company_name,company_name,yahoo_link)
+        msg = EmailMessage()
+        msg['Subject'] = subject
+        msg['From'] = GMAIL_USERNAME
+        msg['To'] = receiver
+        
+        
+        msg.set_content(text)
+        if img:
+            img_data = open('buy_the_dip.jpg', 'rb').read()
+            image_cid = make_msgid()
+            msg.add_alternative("""<html>
+    <body>
+        <p style="font-family:verdana">
+        {text}
+        </p>
+        <img src="cid:{image_cid}">
+    </body>
+</html>
+""".format(text=text,image_cid=image_cid[1:-1]), subtype='html')
+            with open('buy_the_dip.jpg', 'rb') as img:
+                maintype, subtype = mimetypes.guess_type(img.name)[0].split('/')
+        
+                msg.get_payload()[1].add_related(img.read(), 
+                                             maintype=maintype, 
+                                             subtype=subtype, 
+                                             cid=image_cid)
+            
+        else:
+            ti = """<html>
+    <body>
+        <p style="font-family:verdana">
+        {text}
+        </p>
+    </body>
+</html>
+""".format(text=text, subtype='html')
+            text = MIMEText(ti, 'html')
+            msg.set_content(text)
+        
+        send(receiver,msg)
+
+
+
+    
+
