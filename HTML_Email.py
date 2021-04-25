@@ -60,30 +60,29 @@ def send(recipient,msg):
 
 class Emailer:
     
-
-    def daily_email(self,recipient,tickers,name):
+    def daily_email(recipient,tickers,name):
         subject = "Preus del dia " + str(date.today()) + " a les 16:00."
-        body = str(name) + ", PREUS DEL DIA " + str(date.today()) + " a les 16:00."
-        html = "<html><body><p><b>{}</b></p>".format(name)
-        
-        
+        body = str(name) + ", PREUS DEL DIA " + str(date.today()) + " a les 16:00<table><tr><th>Company name</th><th>Price</th><th>Percentage change</th></tr>"
+        html = "<html><body><p><b>{}</b></p>".format(name)        
+
         if isinstance(tickers,str):
             ticker = tickers
             perc = get_pct(ticker)
             link = "https://finance.yahoo.com/quote/{}/".format(ticker)
             price = get_price(ticker)
-            
+
             try:
                 company_name = yf.Ticker(ticker).info['longName']
             except:
                 company_name = ticker
             if perc < 0:
-                body += "<br>El preu de <a href='{}'><b>{}</a></b> és <b style = color:#fb0f29>${}, {}%</b> negatiu.".format(link,company_name,price,perc)
+                body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#fb0f29>${}</b></td><td> <b style = color:#fb0f29>{}%</b></td>".format(link,company_name,price,perc)
             else:
-                body += "<br>El preu de <a href='{}'><b>{}</a></b> és <b style = color:#00b52c>${}, {}%</b> positiu.".format(link,company_name,price,perc)
+                body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#00b52c>${}</b></td><td> <b style = color:#00b52c>{}%</b></td>".format(link,company_name,price,perc)
             body += "</body></html>"
         else:   
             for idx,ticker in enumerate(tickers):
+                body += "<tr>"
                 link = "https://finance.yahoo.com/quote/{}/".format(ticker)
                 perc = get_pct(ticker)
                 price = get_price(ticker)
@@ -92,14 +91,15 @@ class Emailer:
                 except:
                     company_name = ticker
                 if perc < 0:
-                    body += "<br>El preu de <a href='{}'><b>{}</a></b> és <b style = color:#fb0f29>${}, {}%</b> negatiu.".format(link,company_name,price,perc)
+                    body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#fb0f29>${}</b></td><td> <b style = color:#fb0f29>{}%</b></td>".format(link,company_name,price,perc)
                 else:
-                    body += "<br>El preu de <a href='{}'><b>{}</a></b> és <b style = color:#00b52c>${}, {}%</b> positiu.".format(link,company_name,price,perc)
-                ## get price of yesterday close vs today and set colors
-                ## style="color:#00b52c" green
-                ## style="color:#fb0f29" red
-                ## link for stonks: https://codepen.io/havardob/pen/PoPaWaE
-            body += "</body></html>"
+                    body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#00b52c>${}</b></td><td> <b style = color:#00b52c>{}%</b></td>".format(link,company_name,price,perc)
+                    ## get price of yesterday close vs today and set colors
+                    ## style="color:#00b52c" green
+                    ## style="color:#fb0f29" red
+                    ## link for stonks: https://codepen.io/havardob/pen/PoPaWaE
+                body += "</tr>"
+            body += "</table></body></html>"
         html = body.format(subtype = 'html')
         msg = EmailMessage()
         msg['Subject'] = subject
@@ -107,7 +107,6 @@ class Emailer:
         msg['To'] = recipient
         html = MIMEText(html,'html')
         msg.set_content(html)
-        
         send(recipient,msg)
         
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
