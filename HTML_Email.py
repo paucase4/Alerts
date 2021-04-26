@@ -62,7 +62,7 @@ class Emailer:
     
     def daily_email(recipient,tickers,name):
         subject = "Preus del dia " + str(date.today()) + " a les 16:00."
-        body = str(name) + ", PREUS DEL DIA " + str(date.today()) + " a les 16:00<table><tr><th>Company name</th><th>Price</th><th>Percentage change</th></tr>"
+        body = str(name) + ", <b>PREUS DEL DIA " + str(date.today()) + " a les 16:00</b><table><tr><th>Company name</th><th>Price</th><th>Percentage change</th></tr>"
         html = "<html><body><p><b>{}</b></p>".format(name)        
 
         if isinstance(tickers,str):
