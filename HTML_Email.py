@@ -62,7 +62,7 @@ class Emailer:
     
     def daily_email(recipient,tickers,name):
         subject = "Preus del dia " + str(date.today()) + " a les 16:00."
-        body = str(name) + ", <b>PREUS DEL DIA " + str(date.today()) + " a les 16:00</b><table><tr><th>Company name</th><th>Price</th><th>Percentage change</th></tr>"
+        body = str(name) + ", <b>PREUS DEL DIA " + str(date.today()) + " a les 16:00</b><table><tr><th>Empresa</th><th>Preu</th><th>Rendiment</th></tr>"
         html = "<html><body><p><b>{}</b></p>".format(name)        
 
         if isinstance(tickers,str):
@@ -94,7 +94,6 @@ class Emailer:
                     body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#fb0f29>${}</b></td><td> <b style = color:#fb0f29>{}%</b></td>".format(link,company_name,price,perc)
                 else:
                     body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#00b52c>${}</b></td><td> <b style = color:#00b52c>{}%</b></td>".format(link,company_name,price,perc)
-                    ## get price of yesterday close vs today and set colors
                     ## style="color:#00b52c" green
                     ## style="color:#fb0f29" red
                     ## link for stonks: https://codepen.io/havardob/pen/PoPaWaE
