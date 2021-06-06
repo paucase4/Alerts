@@ -26,21 +26,31 @@ GMAIL_USERNAME = 'stocknotificacions@gmail.com'
 GMAIL_PASSWORD = ''
 def get_pct(ticker):
     price = get_price(ticker)
-    previous_close = round(yf.download(ticker)['Close'][-2],3)
-    change = 1 - (price / previous_close)
-    percent_change = round(change * 100,2)*(-1)
+    try:
+        previous_close = round(yf.download(ticker)['Close'][-2],3)
+    except:
+        previous_close = -10
+    if price != -10 and previous_close != -10:
+        change = 1 - (price / previous_close)
+        percent_change = round(change * 100,2)*(-1)
+    else:
+        return -101
     return percent_change
 
 def get_price(ticker):
     a = ""
     if connection():
-        data = yf.download(tickers=ticker, period='1d', interval='1m')
-        close=data['Close'][-1]
+        try:
+            data = yf.download(tickers=ticker, period='1d', interval='1m')
+            close=data['Close'][-1]
+        except:
+            return -10
+            print("Error occurred while trying to download data of " + str(ticker))
     else:
         print("No connection.")
-        return 0
+        return -10
     return round(float(close),4)
-
+    
 def connection():
     http = u3.PoolManager()
     try:
@@ -59,7 +69,21 @@ def send(recipient,msg):
         s.quit()
 
 class Emailer:
-    
+    def error_email():
+        subject = "Stock Alerting has stopped on the " + str(date.today())
+        
+        body = "<html><body><h1>STOPPED APP - RESTART NEEDED - ERROR IN SCREEN</h1></body></html>".format(name)        
+
+        html = body.format(subtype = 'html')
+        msg = EmailMessage()
+        msg['Subject'] = subject
+        msg['From'] = GMAIL_USERNAME
+        msg['To'] = 'paucase4@gmail.com'
+        html = MIMEText(html,'html')
+        msg.set_content(html)
+        send(recipient,msg)
+        
+        
     def daily_email(recipient,tickers,name):
         subject = "Preus del dia " + str(date.today()) + " a les 16:00."
         body = str(name) + ", <b>PREUS DEL DIA " + str(date.today()) + " a les 16:00</b><table><tr><th>Empresa</th><th>Preu</th><th>Rendiment</th></tr>"

@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import time
 import yfinance as yf
 from datetime import datetime,timedelta,date
@@ -12,6 +6,7 @@ import urllib3 as u3
 from HTML_Email import Emailer
 import gspread
 import collections
+
 def update_dict():
     counter = 2
     n = []
@@ -27,6 +22,8 @@ def update_dict():
         name_cell = str(worksheet.acell('C' + str(counter)).value).replace(" ", "")
         tickers_cell = str(worksheet.acell('D' + str(counter)).value).replace(" ", "").split(",")
         notification_cell = str(worksheet.acell('E' + str(counter)).value).replace(" ", "").split(",")
+        #   qty_cell = str(worksheet.acell('E' + str(counter)).value).replace(" ", "").split(",")
+        
         for asd in notification_cell:
             if asd == "Baixadadel5%":
                 n.append(1)
@@ -154,6 +151,7 @@ def connection():
         return False
 
 def allprices(tickers,target_prices,notsent):
+
     notSent = notsent
     for idx,ticker in enumerate(tickers):
         if get_price(ticker) <= target_prices[idx] and notSent[idx] == True:
@@ -166,11 +164,15 @@ def allprices(tickers,target_prices,notsent):
 def get_price(ticker):
     a = ""
     if connection():
-        data = yf.download(tickers=ticker, period='1d', interval='1m')
-        close=data['Close'][-1]
+        try:
+            data = yf.download(tickers=ticker, period='1d', interval='1m')
+            close=data['Close'][-1]
+        except:
+            return -10
+            print("Error occurred while trying to download data of " + str(ticker))
     else:
         print("No connection.")
-        return 0
+        return -10
     return round(float(close),4)
 
 def get_prices(tickers):    
@@ -191,19 +193,28 @@ def addzero(string):
 
 def get_change(ticker):
     price = get_price(ticker)
-    previous_close = round(yf.download(ticker)['Close'][-2],3)
-    change = 1 - (price / previous_close)
-    percent_change = round(change * 100,2)*(-1)
+    try:
+        previous_close = round(yf.download(ticker)['Close'][-2],3)
+        change = 1 - (price / previous_close)
+        percent_change = round(change * 100,2)*(-1)
+    except:
+        return -101
+        print('Error downloading data | Ticker: ' + ticker )
     return percent_change
 
 def check_losses_and_wins5(tickers):
     pct = 5
     prices = get_prices(tickers)
+    
     for idx,ticker in enumerate(tickers):
-        close = yf.download(ticker)['Close']
+        try:
+            close = yf.download(ticker)['Close']
+        except:
+            print("Error downloading data from ticker" + ticker)
+            pass
         if same_day(close):
             change = get_change(ticker)
-            if 5.0 < abs(change) and connection():                        
+            if 5.0 < abs(change) and connection() and change != -101:                        
                 for p in d:
                     if change < 0:
                         print("lower than 5!")
@@ -221,11 +232,15 @@ def check_losses_and_wins5(tickers):
 def check_losses_and_wins10(tickers):
     pct = 10
     prices = get_prices(tickers)
-    for idx,price in enumerate(prices):        
-        close = yf.download(tickers[idx])['Close']
+    for idx,price in enumerate(prices):  
+        try:
+            close = yf.download(tickers[idx])['Close']
+        except:
+            print("Error downloading data from ticker" + tickers[idx])
+            pass
         if same_day(close):
             change = get_change(tickers[idx])
-            if 10.0 < abs(change) and connection():                        
+            if 10.0 < abs(change) and connection() and change != -101:                        
                 for p in d:
                     if 4 in get_notifications(p):
                         if change < 0:
@@ -319,5 +334,8 @@ def main():
         time.sleep(450)
 
 d = update_dict()
-
-main()
+try:
+    main()
+except:
+    sender2 = Emailer()
+    sender2.error_email() # report error to host
