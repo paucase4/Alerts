@@ -308,31 +308,9 @@ def sleeping(wakeup):
 
 
 def main():
-    reset_everything()
-    DAILY_NOTSENT = True
-    TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
+    sender.loss_email("paucase4@gmail.com","TEST",2000,100, False)
+    sender.error_email("ERROR TEST")
     
-    while True: 
-        global d
-        weekend()
-        if sleeping(7):
-            d = update_dict()
-        day = datetime.today()
-        print(str(day.hour)+ ":" + addzero(str(day.minute)) + ":" + addzero(str(day.minute)))
-        check_losses_and_wins5(get_tickers(d))
-        check_losses_and_wins10(get_tickers(d))
-        if connection():
-            TARGET_NOT_SENT = allprices(TARGET_TICKERS,TARGET_PRICES,TARGET_NOT_SENT)     # check prices w targets and email if necessary. If emailed, change notsent.
-            
-                        # send email if there are 5% losses 
-        day = datetime.today()
-        if DAILY_NOTSENT and datetime.today().hour == 14:
-            for p in d:
-                if 3 in get_notifications(p):
-                    sender.daily_email(p,get_tickers_person(p),get_name(p))
-                    DAILY_NOTSENT = False
-        time.sleep(450)
-
 d = update_dict()
 try:
     main()

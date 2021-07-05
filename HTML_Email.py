@@ -73,7 +73,7 @@ class Emailer:
         subject = "Stock Alerting has stopped on the " + str(date.today())
         
         body = "<html><body><h1>STOPPED APP - RESTART NEEDED - ERROR IN SCREEN</h1><h3>{}</h3></body></html>".format(error_text)        
-
+        recipient = "paucase4@gmail.com"
         html = body.format(subtype = 'html')
         msg = EmailMessage()
         msg['Subject'] = subject
