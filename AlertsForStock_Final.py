@@ -7,6 +7,8 @@ from HTML_Email import Emailer
 import gspread
 import collections
 
+from Data import Info
+
 def update_dict():
     counter = 2
     n = []

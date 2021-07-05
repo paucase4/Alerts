@@ -16,7 +16,7 @@ import mimetypes
 import yfinance as yf
 from datetime import datetime,timedelta,date
 import urllib3 as u3
-from Info import Info
+from Data import Info
 HAPPY = ["stonks.jpg","yes_youre_this.jpg"]
 RELAX = [""]
 MOTIVATION = ["willitbeeasy.jpg","struggle_today.jpg","comeback_stronger.jpg"]
@@ -91,7 +91,7 @@ class Emailer:
             price = get_price(ticker)
 
             try:
-                company_name = yf.Ticker(ticker).info['longName']
+                company_name = info.company_name()
             except:
                 company_name = ticker
             if perc < 0:
@@ -106,7 +106,7 @@ class Emailer:
                 perc = get_pct(ticker)
                 price = get_price(ticker)
                 try:
-                    company_name = yf.Ticker(ticker).info['longName']
+                    company_name = info.company_name()
                 except:
                     company_name = ticker
                 if perc < 0:
@@ -144,7 +144,7 @@ class Emailer:
             m = "0" + m
         link = "https://finance.yahoo.com/quote/" + ticker + "/"
         try:
-            company_name = yf.Ticker(ticker).info['longName']
+            company_name = info.company_name()
         except:
             company_name = ticker
 
@@ -224,7 +224,7 @@ class Emailer:
             m = "0" + m
         link = "https://finance.yahoo.com/quote/" + ticker + "/"
         try:
-            company_name = yf.Ticker(ticker).info['longName']
+            company_name = info.company_name()
         except:
             company_name = ticker
         subject = "ESCALADA DEL {}% EN EL PREU DE {}".format(percentage,company_name)
@@ -269,7 +269,7 @@ class Emailer:
     def target_email(self,receiver, ticker, img, name):
         yahoo_link = "https://finance.yahoo.com/quote/" + ticker + "/"
         try:
-            company_name = yf.Ticker(ticker).info['longName']
+            company_name = info.company_name()
         except:
             company_name = ticker
         subject = "Oportunitat de compra a {}".format(company_name)
