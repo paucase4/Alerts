@@ -79,7 +79,7 @@ class Emailer:
         send(recipient,msg)
         
         
-    def daily_email(recipient,tickers,name):
+    def daily_email(self,recipient,tickers,name):
         subject = "Preus del dia " + str(date.today()) + " a les 16:00."
         body = str(name) + ", <b>PREUS DEL DIA " + str(date.today()) + " a les 16:00</b><table><tr><th>Empresa</th><th>Preu</th><th>Rendiment</th></tr>"
         html = "<html><body><p><b>{}</b></p>".format(name)        
