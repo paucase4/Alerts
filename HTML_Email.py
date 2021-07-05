@@ -16,6 +16,7 @@ import mimetypes
 import yfinance as yf
 from datetime import datetime,timedelta,date
 import urllib3 as u3
+from Info import Info
 HAPPY = ["stonks.jpg","yes_youre_this.jpg"]
 RELAX = [""]
 MOTIVATION = ["willitbeeasy.jpg","struggle_today.jpg","comeback_stronger.jpg"]
@@ -24,16 +25,12 @@ SMTP_SERVER = 'smtp.gmail.com'
 SMTP_PORT = 587 
 GMAIL_USERNAME = 'stocknotificacions@gmail.com' 
 GMAIL_PASSWORD = ''
+info = Info()
 def get_pct(ticker):
     price = get_price(ticker)
     try:
-        previous_close = round(yf.download(ticker)['Close'][-2],3)
+        percent_change = info.change()
     except:
-        previous_close = -10
-    if price != -10 and previous_close != -10:
-        change = 1 - (price / previous_close)
-        percent_change = round(change * 100,2)*(-1)
-    else:
         return -101
     return percent_change
 
@@ -41,8 +38,7 @@ def get_price(ticker):
     a = ""
     if connection():
         try:
-            data = yf.download(tickers=ticker, period='1d', interval='1m')
-            close=data['Close'][-1]
+            close = info.price()
         except:
             return -10
             print("Error occurred while trying to download data of " + str(ticker))
@@ -71,14 +67,13 @@ def send(recipient,msg):
 class Emailer:
     def error_email(self,error_text):
         subject = "Stock Alerting has stopped on the " + str(date.today())
-        
         body = "<html><body><h1>STOPPED APP - RESTART NEEDED - ERROR IN SCREEN</h1><h3>{}</h3></body></html>".format(error_text)        
         recipient = "paucase4@gmail.com"
         html = body.format(subtype = 'html')
         msg = EmailMessage()
         msg['Subject'] = subject
         msg['From'] = GMAIL_USERNAME
-        msg['To'] = 'paucase4@gmail.com'
+        msg['To'] = recipient
         html = MIMEText(html,'html')
         msg.set_content(html)
         send(recipient,msg)
