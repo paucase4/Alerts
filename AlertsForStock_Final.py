@@ -6,6 +6,7 @@ import urllib3 as u3
 from HTML_Email import Emailer
 import gspread
 import collections
+from Info import Info
 
 def update_dict():
     counter = 2
@@ -165,8 +166,7 @@ def get_price(ticker):
     a = ""
     if connection():
         try:
-            data = yf.download(tickers=ticker, period='1d', interval='1m')
-            close=data['Close'][-1]
+            info.price(ticker)
         except:
             return -10
             print("Error occurred while trying to download data of " + str(ticker))
@@ -192,11 +192,8 @@ def addzero(string):
     
 
 def get_change(ticker):
-    price = get_price(ticker)
     try:
-        previous_close = round(yf.download(ticker)['Close'][-2],3)
-        change = 1 - (price / previous_close)
-        percent_change = round(change * 100,2)*(-1)
+        percent_change = round(info.change(),2)*(-1)
     except:
         return -101
         print('Error downloading data | Ticker: ' + ticker )
@@ -334,6 +331,7 @@ def main():
         time.sleep(450)
 
 d = update_dict()
+info = Info()
 try:
     main()
 except Exception as exc:
