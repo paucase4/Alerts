@@ -69,10 +69,10 @@ def send(recipient,msg):
         s.quit()
 
 class Emailer:
-    def error_email():
+    def error_email(self,error_text):
         subject = "Stock Alerting has stopped on the " + str(date.today())
         
-        body = "<html><body><h1>STOPPED APP - RESTART NEEDED - ERROR IN SCREEN</h1></body></html>".format(name)        
+        body = "<html><body><h1>STOPPED APP - RESTART NEEDED - ERROR IN SCREEN</h1><h3>{}</h3></body></html>".format(error_text)        
 
         html = body.format(subtype = 'html')
         msg = EmailMessage()

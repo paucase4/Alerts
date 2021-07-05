@@ -336,6 +336,7 @@ def main():
 d = update_dict()
 try:
     main()
-except:
+except Exception as exc:
+    print(exc)
     sender2 = Emailer()
-    sender2.error_email() # report error to host
+    sender2.error_email(exc) # report error to host
