@@ -170,7 +170,7 @@ def get_price(ticker):
             close = info.price(ticker)
         except:
             return -10
-            print("Error occurred while trying to download data of " + str(ticker))
+            #print("Error occurred while trying to download data of " + str(ticker))
     else:
         print("No connection.")
         return -10
@@ -198,20 +198,20 @@ def get_change(ticker):
         percent_change = info.change(ticker)
     except:
         return -101
-        print('Error downloading data | Ticker: ' + ticker )
+        #print('Error downloading data | Ticker: ' + ticker )
     return percent_change
 
 def check_losses_and_wins5(tickers):
     pct = 5
     prices = get_prices(tickers)
-    
+    skip = False
     for idx,ticker in enumerate(tickers):
         try:
             close = yf.download(ticker)['Close']
         except:
             print("Error downloading data from ticker" + ticker)
-            break
-        if same_day(close):
+            skip = True
+        if same_day(close) and skip == False:
             change = get_change(ticker)
             if 5.0 < abs(change) and connection() and change != -101:                        
                 for p in d:
@@ -228,16 +228,20 @@ def check_losses_and_wins5(tickers):
                                 print("5% up: " + str(tickers[idx]) + " " + str(p))
                                 sender.win_email(p,tickers[idx],prices[idx],change)
                                 set_as_sent(p,0,d[p][1].index(tickers[idx]))
+        else:
+            print("Ticker {} is causing a problem.".format(ticker))
+            skip = False
 def check_losses_and_wins10(tickers):
     pct = 10
     prices = get_prices(tickers)
+    skip = False
     for idx,price in enumerate(prices):  
         try:
             close = yf.download(tickers[idx])['Close']
         except:
             print("Error downloading data from ticker" + tickers[idx])
-            break
-        if same_day(close):
+            skip = True
+        if same_day(close) and skip == False:
             change = get_change(tickers[idx])
             if 10.0 < abs(change) and connection() and change != -101:                        
                 for p in d:
@@ -252,6 +256,9 @@ def check_losses_and_wins10(tickers):
                                 print("10% up: " + str(tickers[idx]) + " " + str(p))
                                 sender.win_email(p,tickers[idx],prices[idx],change)
                                 set_as_sent2(p,0,d[p][1].index(tickers[idx]))
+        else:
+            print("Ticker {} is causing a problem.".format(ticker))
+            skip = False
 
                                 
 def reset_everything():
@@ -266,6 +273,7 @@ def reset_everything():
         if len(d[p]) == 5:
             d[p][4] = [True] * len(d[p][4])  
     return d
+    
 def check_all():
     return 0
 
@@ -278,7 +286,7 @@ def weekend():
         time.sleep(28888)
         day = datetime.today().isoweekday()
         
-def sleeping(wakeup):    
+def sleeping(wakeup):
     day = datetime.today()
     h = day.hour
     if h >= 21:

@@ -16,7 +16,7 @@ class Info:
 
     def price(self,ticker):
         regex = '<span class="Trsdu\(0.3s\) Fw\(b\) Fz\(36px\) Mb\(-4px\) D\(ib\)" data-reactid="32">.*<\/span>'
-        web = get_content(ticker)
+        web = self.get_content(ticker)
         for re_match in re.finditer(regex, web):
             idx = web.index(re_match.group())
             part = web[idx+74:idx+90]
@@ -26,11 +26,12 @@ class Info:
                     result += letter
                 else:
                     break
+            result = result.replace(',','')
         return float(result)
     
     def change(self,ticker):
         regex = '<span class="Trsdu\(0.3s\) Fw\(500\) Pstart\(10px\) Fz\(24px\) C\(\$.*olor\)" data-reactid="33">.*<\/span>'
-        web = get_content(ticker)
+        web = self.get_content(ticker)
         for re_match in re.finditer(regex, web):
             idx = web.index(re_match.group())
             part = web[idx+92:idx+120]
@@ -49,7 +50,7 @@ class Info:
     
     def company_name(self,ticker):
         regex = '<h1 class="D\(ib\) Fz\(18px\)" data-reactid="7">.*<\/h1>'
-        web = get_content(ticker)
+        web = self.get_content(ticker)
         for re_match in re.finditer(regex, web):
             idx = web.index(re_match.group())
             part = web[idx+44:idx+200]
