@@ -153,10 +153,10 @@ def connection():
         return False
 
 def allprices(tickers,target_prices,notsent):
-
     notSent = notsent
     for idx,ticker in enumerate(tickers):
         if get_price(ticker) <= target_prices[idx] and notSent[idx] == True:
+            print("Price is lower than target, values: PRICE {}, TARGET {}".format(get_price(ticker),target_prices[idx])) 
             sender.target_email(MAIL_PAU,ticker,False,"Pau")
             notSent[idx] = False
     return notSent
@@ -167,7 +167,7 @@ def get_price(ticker):
     a = ""
     if connection():
         try:
-            close = info.price()
+            close = info.price(ticker)
         except:
             return -10
             print("Error occurred while trying to download data of " + str(ticker))
@@ -195,7 +195,7 @@ def addzero(string):
 def get_change(ticker):
     price = get_price(ticker)
     try:
-        percent_change = info.change()
+        percent_change = info.change(ticker)
     except:
         return -101
         print('Error downloading data | Ticker: ' + ticker )
@@ -322,7 +322,6 @@ def main():
         check_losses_and_wins10(get_tickers(d))
         if connection():
             TARGET_NOT_SENT = allprices(TARGET_TICKERS,TARGET_PRICES,TARGET_NOT_SENT)     # check prices w targets and email if necessary. If emailed, change notsent.
-            
                         # send email if there are 5% losses 
         day = datetime.today()
         if DAILY_NOTSENT and datetime.today().hour == 14:

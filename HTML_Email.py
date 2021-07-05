@@ -29,7 +29,7 @@ info = Info()
 def get_pct(ticker):
     price = get_price(ticker)
     try:
-        percent_change = info.change()
+        percent_change = info.change(ticker)
     except:
         return -101
     return percent_change
@@ -38,7 +38,7 @@ def get_price(ticker):
     a = ""
     if connection():
         try:
-            close = info.price()
+            close = info.price(ticker)
         except:
             return -10
             print("Error occurred while trying to download data of " + str(ticker))
@@ -91,7 +91,7 @@ class Emailer:
             price = get_price(ticker)
 
             try:
-                company_name = info.company_name()
+                company_name = info.company_name(ticker)
             except:
                 company_name = ticker
             if perc < 0:
@@ -106,7 +106,7 @@ class Emailer:
                 perc = get_pct(ticker)
                 price = get_price(ticker)
                 try:
-                    company_name = info.company_name()
+                    company_name = info.company_name(ticker)
                 except:
                     company_name = ticker
                 if perc < 0:
@@ -144,7 +144,7 @@ class Emailer:
             m = "0" + m
         link = "https://finance.yahoo.com/quote/" + ticker + "/"
         try:
-            company_name = info.company_name()
+            company_name = info.company_name(ticker)
         except:
             company_name = ticker
 
@@ -224,7 +224,7 @@ class Emailer:
             m = "0" + m
         link = "https://finance.yahoo.com/quote/" + ticker + "/"
         try:
-            company_name = info.company_name()
+            company_name = info.company_name(ticker)
         except:
             company_name = ticker
         subject = "ESCALADA DEL {}% EN EL PREU DE {}".format(percentage,company_name)
@@ -269,7 +269,7 @@ class Emailer:
     def target_email(self,receiver, ticker, img, name):
         yahoo_link = "https://finance.yahoo.com/quote/" + ticker + "/"
         try:
-            company_name = info.company_name()
+            company_name = info.company_name(ticker)
         except:
             company_name = ticker
         subject = "Oportunitat de compra a {}".format(company_name)
