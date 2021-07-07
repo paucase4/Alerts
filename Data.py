@@ -61,3 +61,20 @@ class Info:
                 else:
                     break
         return result
+        
+    def is_traded(self,ticker):
+        regex = '>At close:'
+        web = self.get_content(ticker)
+        for re_match in re.finditer(regex, web):
+            return False
+        return True
+    def is_us_ticker(self,ticker):
+        if '.' in ticker:
+            return False
+        else:
+            return True
+    def is_us_market_closed(self):
+        if datetime.today().hour < 21 datetime.today().hour > 11:
+            return False
+        else:
+            return True

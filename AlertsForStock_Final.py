@@ -200,65 +200,66 @@ def get_change(ticker):
         return -101
         #print('Error downloading data | Ticker: ' + ticker )
     return percent_change
-
+        
 def check_losses_and_wins5(tickers):
     pct = 5
     prices = get_prices(tickers)
-    skip = False
+    data_found = False
     for idx,ticker in enumerate(tickers):
-        try:
-            close = yf.download(ticker)['Close']
-        except:
-            print("Error downloading data from ticker" + ticker)
-            skip = True
-        if same_day(close) and skip == False:
-            change = get_change(ticker)
-            if 5.0 < abs(change) and connection() and change != -101:                        
-                for p in d:
-                    if change < 0:
-                        print("lower than 5!")
-                        if 1 in get_notifications(p):
-                            if tickers[idx] in get_tickers_person(p) and get_notsent1(p)[d[p][1].index(tickers[idx])] == True:
-                                print("5% down: " + str(tickers[idx]) + " " + str(p))
-                                sender.loss_email(p,tickers[idx],prices[idx],change, False)
-                                set_as_sent(p,0,d[p][1].index(tickers[idx]))
-                    elif change > 0:
-                        if 2 in get_notifications(p):
-                            if tickers[idx] in get_tickers_person(p) and get_notsent1(p)[d[p][1].index(tickers[idx])] == True:
-                                print("5% up: " + str(tickers[idx]) + " " + str(p))
-                                sender.win_email(p,tickers[idx],prices[idx],change)
-                                set_as_sent(p,0,d[p][1].index(tickers[idx]))
+        if info.is_traded(ticker) == False:
+            pass
         else:
-            print("Ticker {} is causing a problem.".format(ticker))
-            skip = False
+            if price == -10:
+                data_found = False
+            if data_found:
+                change = get_change(ticker)
+                if 5.0 < abs(change) and connection() and change != -101:                        
+                    for p in d:
+                        if change < 0:
+                            print("lower than 5!")
+                            if 1 in get_notifications(p):
+                                if tickers[idx] in get_tickers_person(p) and get_notsent1(p)[d[p][1].index(tickers[idx])] == True:
+                                    print("5% down: " + str(tickers[idx]) + " " + str(p))
+                                    sender.loss_email(p,tickers[idx],prices[idx],change, False)
+                                    set_as_sent(p,0,d[p][1].index(tickers[idx]))
+                        elif change > 0:
+                            if 2 in get_notifications(p):
+                                if tickers[idx] in get_tickers_person(p) and get_notsent1(p)[d[p][1].index(tickers[idx])] == True:
+                                    print("5% up: " + str(tickers[idx]) + " " + str(p))
+                                    sender.win_email(p,tickers[idx],prices[idx],change)
+                                    set_as_sent(p,0,d[p][1].index(tickers[idx]))
+            else:
+                print("Ticker {} is causing a problem.".format(ticker))
+                data_found = True
+    
 def check_losses_and_wins10(tickers):
     pct = 10
     prices = get_prices(tickers)
-    skip = False
+    data_found = True
     for idx,price in enumerate(prices):  
-        try:
-            close = yf.download(tickers[idx])['Close']
-        except:
-            print("Error downloading data from ticker" + tickers[idx])
-            skip = True
-        if same_day(close) and skip == False:
-            change = get_change(tickers[idx])
-            if 10.0 < abs(change) and connection() and change != -101:                        
-                for p in d:
-                    if 4 in get_notifications(p):
-                        if change < 0:
-                            if tickers[idx] in get_tickers_person(p) and get_notsent2(p)[d[p][1].index(tickers[idx])] == True:
-                                print("10% down: " + str(tickers[idx]) + " " + str(p))
-                                sender.loss_email(p,tickers[idx],prices[idx],change, False)
-                                set_as_sent2(p,0,d[p][1].index(tickers[idx]))
-                        elif change > 0:
-                            if tickers[idx] in get_tickers_person(p) and get_notsent2(p)[d[p][1].index(tickers[idx])] == True and 3 in get_notifications(p):
-                                print("10% up: " + str(tickers[idx]) + " " + str(p))
-                                sender.win_email(p,tickers[idx],prices[idx],change)
-                                set_as_sent2(p,0,d[p][1].index(tickers[idx]))
+        if info.is_traded(ticker) == False:
+            pass
         else:
-            print("Ticker {} is causing a problem.".format(ticker))
-            skip = False
+            if price == -10:
+                data_found = False
+            if data_found:
+                change = get_change(tickers[idx])
+                if 10.0 < abs(change) and connection() and change != -101:                        
+                    for p in d:
+                        if 4 in get_notifications(p):
+                            if change < 0:
+                                if tickers[idx] in get_tickers_person(p) and get_notsent2(p)[d[p][1].index(tickers[idx])] == True:
+                                    print("10% down: " + str(tickers[idx]) + " " + str(p))
+                                    sender.loss_email(p,tickers[idx],prices[idx],change, False)
+                                    set_as_sent2(p,0,d[p][1].index(tickers[idx]))
+                            elif change > 0:
+                                if tickers[idx] in get_tickers_person(p) and get_notsent2(p)[d[p][1].index(tickers[idx])] == True and 3 in get_notifications(p):
+                                    print("10% up: " + str(tickers[idx]) + " " + str(p))
+                                    sender.win_email(p,tickers[idx],prices[idx],change)
+                                    set_as_sent2(p,0,d[p][1].index(tickers[idx]))
+            else:
+                print("Ticker {} is causing a problem.".format(ticker))
+                data_found = True
 
                                 
 def reset_everything():
