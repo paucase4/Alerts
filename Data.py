@@ -74,7 +74,7 @@ class Info:
         else:
             return True
     def is_us_market_closed(self):
-        if datetime.today().hour < 21 datetime.today().hour > 11:
+        if datetime.today().hour < 21 and datetime.today().hour > 11:
             return False
         else:
             return True
