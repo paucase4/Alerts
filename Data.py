@@ -12,8 +12,8 @@ class Info:
         session = HTMLSession()
         try:
             r = session.get("https://finance.yahoo.com/quote/{}".format(ticker), timeout=15)
-        except requests.exceptions.Timeout as err: 
-            print(err)
+        except : 
+            print("Timeout while trying to connect to yahoo. Ticker: "+ str(ticker))
             return ""
         web = r.html.raw_html.decode()
         return web
