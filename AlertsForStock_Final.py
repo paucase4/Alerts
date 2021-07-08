@@ -209,7 +209,7 @@ def check_losses_and_wins5(tickers):
         if info.is_traded(ticker) == False:
             pass
         else:
-            if price == -10:
+            if prices[idx] == -10:
                 data_found = False
             if data_found:
                 change = get_change(ticker)
@@ -237,7 +237,7 @@ def check_losses_and_wins10(tickers):
     prices = get_prices(tickers)
     data_found = True
     for idx,price in enumerate(prices):  
-        if info.is_traded(ticker) == False:
+        if info.is_traded(tickers[idx]) == False:
             pass
         else:
             if price == -10:
@@ -258,7 +258,7 @@ def check_losses_and_wins10(tickers):
                                     sender.win_email(p,tickers[idx],prices[idx],change)
                                     set_as_sent2(p,0,d[p][1].index(tickers[idx]))
             else:
-                print("Ticker {} is causing a problem.".format(ticker))
+                print("Ticker {} is causing a problem.".format(tickers[idx]))
                 data_found = True
 
                                 
