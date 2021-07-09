@@ -17,15 +17,13 @@ import yfinance as yf
 from datetime import datetime,timedelta,date
 import urllib3 as u3
 from Data import Info
-HAPPY = ["stonks.jpg","yes_youre_this.jpg"]
-RELAX = [""]
-MOTIVATION = ["willitbeeasy.jpg","struggle_today.jpg","comeback_stronger.jpg"]
 
 SMTP_SERVER = 'smtp.gmail.com'
 SMTP_PORT = 587 
 GMAIL_USERNAME = 'stocknotificacions@gmail.com' 
 GMAIL_PASSWORD = ''
 info = Info()
+
 def get_pct(ticker):
     price = get_price(ticker)
     try:
@@ -127,12 +125,11 @@ class Emailer:
         msg.set_content(html)
         send(recipient,msg)
         
-#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
     def loss_email_content(self,ticker,price,percentage):
         d = datetime.today()
         day = str(date.today())
-        h = str(d.hour) 
+        h = str(d.hour + 2) 
         m = str(d.minute)
         s = str(d.second)
         percentage = round(percentage,2)
@@ -212,7 +209,7 @@ class Emailer:
     def win_email_content(self,ticker,price,percentage):
         d = datetime.today()
         day = str(date.today())
-        h = str(d.hour) 
+        h = str(d.hour + 2) 
         m = str(d.minute)
         s = str(d.second)
         percentage = round(percentage,2)

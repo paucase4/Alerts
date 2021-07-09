@@ -10,6 +10,7 @@ import collections
 from Data import Info
 
 def update_dict():
+    print("{}:{}:{}, updating dictionary".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
     counter = 2
     n = []
     notsent_length = 0
@@ -56,6 +57,7 @@ def update_dict():
         n = []
         d[val1] = val2
         counter += 1
+    print("{}:{}:{}, finished updating dictionary".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
     return d
 
 def set_as_sent(p,index):
@@ -153,12 +155,16 @@ def connection():
         return False
 
 def allprices(tickers,target_prices,notsent):
+    print("{}:{}:{}, start checking target".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
+    
     notSent = notsent
     for idx,ticker in enumerate(tickers):
         if get_price(ticker) <= target_prices[idx] and notSent[idx] == True:
             print("Price is lower than target, values: PRICE {}, TARGET {}".format(get_price(ticker),target_prices[idx])) 
             sender.target_email(MAIL_PAU,ticker,False,"Pau")
             notSent[idx] = False
+    print("{}:{}:{}, finished checking target".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
+    
     return notSent
 
 
@@ -204,7 +210,8 @@ def get_change(ticker):
 def check_losses_and_wins5(tickers):
     pct = 5
     prices = get_prices(tickers)
-    data_found = False
+    data_found = True
+    print("{}:{}:{}, start checking 5%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
     for idx,ticker in enumerate(tickers):
         if info.is_traded(ticker) == False:
             pass
@@ -231,8 +238,9 @@ def check_losses_and_wins5(tickers):
             else:
                 print("Ticker {} is causing a problem.".format(ticker))
                 data_found = True
-    
+    print("{}:{}:{}, finished checking 5%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
 def check_losses_and_wins10(tickers):
+    print("{}:{}:{}, start checking 10%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
     pct = 10
     prices = get_prices(tickers)
     data_found = True
@@ -260,7 +268,8 @@ def check_losses_and_wins10(tickers):
             else:
                 print("Ticker {} is causing a problem.".format(tickers[idx]))
                 data_found = True
-
+    
+    print("{}:{}:{}, finished checking 10%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
                                 
 def reset_everything():
     global d
