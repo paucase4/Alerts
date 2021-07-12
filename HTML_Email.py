@@ -18,6 +18,9 @@ from datetime import datetime,timedelta,date
 import urllib3 as u3
 from Data import Info
 
+HAPPY = ["stonks.jpg","yes_youre_this.jpg"]
+RELAX = [""]
+MOTIVATION = ["willitbeeasy.jpg","struggle_today.jpg","comeback_stronger.jpg"]
 SMTP_SERVER = 'smtp.gmail.com'
 SMTP_PORT = 587 
 GMAIL_USERNAME = 'stocknotificacions@gmail.com' 
@@ -81,19 +84,20 @@ class Emailer:
         subject = "Preus del dia " + str(date.today()) + " a les 16:00."
         body = str(name) + ", <b>PREUS DEL DIA " + str(date.today()) + " a les 16:00</b><table><tr><th>Empresa</th><th>Preu</th><th>Rendiment</th></tr>"
         html = "<html><body><p><b>{}</b></p>".format(name)        
-
+        count_1 = 0
         if isinstance(tickers,str):
             ticker = tickers
             perc = get_pct(ticker)
             link = "https://finance.yahoo.com/quote/{}/".format(ticker)
             price = get_price(ticker)
-
+            
             try:
                 company_name = info.company_name(ticker)
             except:
                 company_name = ticker
             if perc < 0:
                 body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#fb0f29>${}</b></td><td> <b style = color:#fb0f29>{}%</b></td>".format(link,company_name,price,perc)
+                count_1 += 1
             else:
                 body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#00b52c>${}</b></td><td> <b style = color:#00b52c>{}%</b></td>".format(link,company_name,price,perc)
             body += "</body></html>"
@@ -109,6 +113,7 @@ class Emailer:
                     company_name = ticker
                 if perc < 0:
                     body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#fb0f29>${}</b></td><td> <b style = color:#fb0f29>{}%</b></td>".format(link,company_name,price,perc)
+                    count_1 += 1
                 else:
                     body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#00b52c>${}</b></td><td> <b style = color:#00b52c>{}%</b></td>".format(link,company_name,price,perc)
                     ## style="color:#00b52c" green
@@ -116,14 +121,25 @@ class Emailer:
                     ## link for stonks: https://codepen.io/havardob/pen/PoPaWaE
                 body += "</tr>"
             body += "</table></body></html>"
-        html = body.format(subtype = 'html')
-        msg = EmailMessage()
-        msg['Subject'] = subject
-        msg['From'] = GMAIL_USERNAME
-        msg['To'] = recipient
-        html = MIMEText(html,'html')
-        msg.set_content(html)
-        send(recipient,msg)
+        if len(tickers) == count_1 and recipient == "fxcase@gmail.com":
+            body = "<html><body><h1><b style = color:#fb0f29>GORDINFLOOOOOOO NOOOOO LUUUCK TODAYYYYY :( </b></h1></body></html>"
+            html = body.format(subtype = 'html')
+            msg = EmailMessage()
+            msg['Subject'] = subject
+            msg['From'] = GMAIL_USERNAME
+            msg['To'] = recipient
+            html = MIMEText(html,'html')
+            msg.set_content(html)
+            send(recipient,msg)
+        else:
+            html = body.format(subtype = 'html')
+            msg = EmailMessage()
+            msg['Subject'] = subject
+            msg['From'] = GMAIL_USERNAME
+            msg['To'] = recipient
+            html = MIMEText(html,'html')
+            msg.set_content(html)
+            send(recipient,msg)
         
         
     def loss_email_content(self,ticker,price,percentage):

@@ -314,7 +314,7 @@ def sleeping(wakeup):
         h = datetime.today().hour
         return True
     elif h < 7:
-        t = 60 * ((30+60*(7-h)) - m)
+        t = 60 * ((30+60*(7-h)) - datetime.today().minute)
         time.sleep(t)
         d = update_dict()
         reset_everything()
