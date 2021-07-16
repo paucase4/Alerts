@@ -64,7 +64,7 @@ def set_as_sent(p,index):
     d[p][3][index] = False
 
 def get_tickers(d):
-    all_tickers = []    
+    s = []    
     for p in d:
         if 1 not in get_notifications(p) and 2 not in get_notifications(p) and 4 not in get_notifications(p):
             pass
@@ -159,7 +159,8 @@ def allprices(tickers,target_prices,notsent):
     
     notSent = notsent
     for idx,ticker in enumerate(tickers):
-        if get_price(ticker) <= target_prices[idx] and notSent[idx] == True:
+        current_price = get_price(ticker)
+        if current_price <= target_prices[idx] and notSent[idx] == True and current_price != -10:
             print("Price is lower than target, values: PRICE {}, TARGET {}".format(get_price(ticker),target_prices[idx])) 
             sender.target_email(MAIL_PAU,ticker,False,"Pau")
             notSent[idx] = False
@@ -329,7 +330,7 @@ def main():
     DAILY_NOTSENT = True
     TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
     
-    while True: 
+    while True:
         global d
         weekend()
         if sleeping(7):
@@ -340,7 +341,6 @@ def main():
         check_losses_and_wins10(get_tickers(d))
         if connection():
             TARGET_NOT_SENT = allprices(TARGET_TICKERS,TARGET_PRICES,TARGET_NOT_SENT)     # check prices w targets and email if necessary. If emailed, change notsent.
-                        # send email if there are 5% losses 
         day = datetime.today()
         if DAILY_NOTSENT and datetime.today().hour == 14:
             for p in d:

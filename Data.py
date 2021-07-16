@@ -19,7 +19,7 @@ class Info:
         return web
 
     def price(self,ticker):
-        regex = '<span class="Trsdu\(0.3s\) Fw\(b\) Fz\(36px\) Mb\(-4px\) D\(ib\)" data-reactid="32">.*<\/span>'
+        regex = '<span class="Trsdu\(0.3s\) Fw\(b\) Fz\(36px\) Mb\(-4px\) D\(ib\)" data-reactid=".*?">.*?<\/span>'
         web = self.get_content(ticker)
         if web == "":
             raise "NO DATA FOUND"
@@ -36,7 +36,7 @@ class Info:
         return float(result)
     
     def change(self,ticker):
-        regex = '<span class="Trsdu\(0.3s\) Fw\(500\) Pstart\(10px\) Fz\(24px\) C\(\$.*olor\)" data-reactid="33">.*<\/span>'
+        regex = '<span class="Trsdu\(0.3s\) Fw\(500\) Pstart\(10px\) Fz\(24px\) C\(\$.*olor\)" data-reactid=".*?">.*?<\/span>'
         web = self.get_content(ticker)
         if web == "":
             raise "NO DATA FOUND"
@@ -57,7 +57,7 @@ class Info:
         return float(result[:-1])
     
     def company_name(self,ticker):
-        regex = '<h1 class="D\(ib\) Fz\(18px\)" data-reactid="7">.*<\/h1>'
+        regex = '<h1 class="D\(ib\) Fz\(18px\)" data-reactid=".*?">.*?<\/h1>'
         web = self.get_content(ticker)
         if web == "":
             raise "NO DATA FOUND"
