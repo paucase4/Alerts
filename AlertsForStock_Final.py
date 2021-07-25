@@ -283,7 +283,7 @@ def reset_everything():
             d[p][3] = [True] * len(d[p][3])
         if len(d[p]) == 5:
             d[p][4] = [True] * len(d[p][4])  
-    return d
+    return True
     
 def check_all():
     return 0
@@ -335,6 +335,7 @@ def main():
         weekend()
         if sleeping(7):
             d = update_dict()
+            DAILY_NOTSENT = True
         day = datetime.today()
         print(str(day.hour)+ ":" + addzero(str(day.minute)) + ":" + addzero(str(day.minute)))
         check_losses_and_wins5(get_tickers(d))
