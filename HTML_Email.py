@@ -12,11 +12,12 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.message import EmailMessage
 from email.utils import make_msgid
+import calendar
 import mimetypes
 import yfinance as yf
 from datetime import datetime,timedelta,date
 import urllib3 as u3
-from Data import Info
+from Data import current_Info, weekly_Info
 
 HAPPY = ["stonks.jpg","yes_youre_this.jpg"]
 RELAX = [""]
@@ -24,8 +25,8 @@ MOTIVATION = ["willitbeeasy.jpg","struggle_today.jpg","comeback_stronger.jpg"]
 SMTP_SERVER = 'smtp.gmail.com'
 SMTP_PORT = 587 
 GMAIL_USERNAME = 'stocknotificacions@gmail.com' 
-GMAIL_PASSWORD = ''
-info = Info()
+GMAIL_PASSWORD = 'St0ck1nf0'
+info = current_Info()
 
 def get_pct(ticker):
     price = get_price(ticker)
@@ -64,8 +65,101 @@ def send(recipient,msg):
         s.login(GMAIL_USERNAME, GMAIL_PASSWORD)
         s.sendmail(GMAIL_USERNAME, recipient, msg.as_string())
         s.quit()
-
+def get_company_name(ticker):
+    try:
+        company_name = info.company_name(ticker)
+    except:
+        company_name = ticker
+    return company_name
 class Emailer:
+    def monthly_email(self,recipient,tickers,name):
+        month = datetime.now().month
+        months = ['Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre']
+        year = datetime.now().year
+        subject = "Rendiment Mensual {month_name}, {month}-{year}".format(month_name = months[month-1], month= month, year = year)
+        body = str(name).upper() + ", <b>Rendiment Mensual {} de l'any {}</b>".format(months[month-1],year) + "<table><tr><th>Empresa</th><th>Inici de Mes</th><th>Final de Mes</th><th>Rendiment</th></tr>"
+        html = "<html><body><p><b>{}</b></p>".format(name)        
+        if isinstance(tickers,str):
+            ticker = tickers
+            link = "https://finance.yahoo.com/quote/{}/".format(ticker)
+            start_price,end_price,perc = weekly_Info().monthly_performance(ticker)
+            company_name = get_company_name(ticker)
+            
+            if perc < 0:
+                body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#fb0f29>${START_PRICE}</b></td><td> <b style = color:#fb0f29>${END_PRICE}</b></td><td> <b style = color:#fb0f29>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+            else:
+                body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#00b52c>${START_PRICE}</b></td><td> <b style = color:#00b52c>${END_PRICE}</b></td><td> <b style = color:#00b52c>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+            body += "</body></html>"
+        else:   
+            for idx,ticker in enumerate(tickers):
+                body += "<tr>"
+                link = "https://finance.yahoo.com/quote/{}/".format(ticker)
+                start_price,end_price,perc = weekly_Info().monthly_performance(ticker)
+                company_name = get_company_name(ticker)
+                
+                if perc < 0:
+                    body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#fb0f29>${START_PRICE}</b></td><td> <b style = color:#fb0f29>${END_PRICE}</b></td><td> <b style = color:#fb0f29>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+                else:
+                    body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#00b52c>${START_PRICE}</b></td><td> <b style = color:#00b52c>${END_PRICE}</b></td><td> <b style = color:#00b52c>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+                    ## style="color:#00b52c" green
+                    ## style="color:#fb0f29" red
+                    ## link for stonks: https://codepen.io/havardob/pen/PoPaWaE
+                body += "</tr>"
+            body += "</table></body></html>"
+        html = body.format(subtype = 'html')
+        msg = EmailMessage()
+        msg['Subject'] = subject
+        msg['From'] = GMAIL_USERNAME
+        msg['To'] = recipient
+        html = MIMEText(html,'html')
+        msg.set_content(html)
+        send(recipient,msg)
+        
+        
+    def weekly_email(self,recipient,tickers,name):
+        monday = date.today() - timedelta(days = 5)
+        week = monday.isocalendar()[1]
+        monday = str(monday)
+        year = datetime.now().year
+        subject = "Rendiment Setmanal Setmana {}, del dilluns {}".format(week,monday)
+        body = str(name).upper() + ", <b>Rendiment Setmanal Setmana de la setmana {} de l'any {}</b>".format(week,year) + "<table><tr><th>Empresa</th><th>Inici de Setmana</th><th>Final de Setmana</th><th>Rendiment</th></tr>"
+        html = "<html><body><p><b>{}</b></p>".format(name)        
+        if isinstance(tickers,str):
+            ticker = tickers
+            link = "https://finance.yahoo.com/quote/{}/".format(ticker)
+            start_price,end_price,perc = weekly_Info().weekly_performance(ticker,10)
+            company_name = get_company_name(ticker)
+            
+            if perc < 0:
+                body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#fb0f29>${START_PRICE}</b></td><td> <b style = color:#fb0f29>${END_PRICE}</b></td><td> <b style = color:#fb0f29>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+            else:
+                body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#00b52c>${START_PRICE}</b></td><td> <b style = color:#00b52c>${END_PRICE}</b></td><td> <b style = color:#00b52c>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+            body += "</body></html>"
+        else:   
+            for idx,ticker in enumerate(tickers):
+                body += "<tr>"
+                link = "https://finance.yahoo.com/quote/{}/".format(ticker)
+                start_price,end_price,perc = weekly_Info().weekly_performance(ticker,10)
+                company_name = get_company_name(ticker)
+                
+                if perc < 0:
+                    body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#fb0f29>${START_PRICE}</b></td><td> <b style = color:#fb0f29>${END_PRICE}</b></td><td> <b style = color:#fb0f29>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+                else:
+                    body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#00b52c>${START_PRICE}</b></td><td> <b style = color:#00b52c>${END_PRICE}</b></td><td> <b style = color:#00b52c>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+                    ## style="color:#00b52c" green
+                    ## style="color:#fb0f29" red
+                    ## link for stonks: https://codepen.io/havardob/pen/PoPaWaE
+                body += "</tr>"
+            body += "</table></body></html>"
+        html = body.format(subtype = 'html')
+        msg = EmailMessage()
+        msg['Subject'] = subject
+        msg['From'] = GMAIL_USERNAME
+        msg['To'] = recipient
+        html = MIMEText(html,'html')
+        msg.set_content(html)
+        send(recipient,msg)    
+            
     def error_email(self,error_text):
         subject = "Stock Alerting has stopped on the " + str(date.today())
         body = "<html><body><h1>STOPPED APP - RESTART NEEDED - ERROR IN SCREEN</h1><h3>{}</h3></body></html>".format(error_text)        

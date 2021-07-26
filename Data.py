@@ -7,7 +7,61 @@
 import re
 import time
 from requests_html import HTMLSession
-class Info:
+import yfinance as yf
+import calendar
+
+from datetime import datetime, date, timedelta
+class weekly_Info:
+    def baixar_dades_dies(self, ticker, dies_anteriors):
+        dades = yf.Ticker(ticker)
+        
+        avui = datetime.now()
+        
+        dies_anteriors = timedelta(days = dies_anteriors)
+        dia_fa_x_dies = avui - dies_anteriors 
+        
+        preus_i_volums = data = dades.history(period='1d', start=dia_fa_x_dies , end=avui)
+        
+        return preus_i_volums
+    def weekly_performance(self,ticker,days):
+        data = self.baixar_dades_dies(ticker,days)['Close']
+        start_date = datetime.now() - timedelta(days = days)
+        start_price_comprovation = round(data[str(start_date)[0:10]],4)
+        start_price = round(data[0],4)
+        print(start_price,start_price_comprovation)
+        if start_price == start_price_comprovation:        
+            end_price = data[-1]
+            change = round((end_price/start_price-1)*100,2)
+            return round(start_price,4),round(end_price,4),change
+        else:
+            return -10,-10, -101
+        
+        
+    def monthly_performance(self,ticker):
+        year_40_before = datetime.now() - timedelta(days = 40)
+        year_of_last_month = year_40_before.year
+        last_day_of_last_month = calendar.monthrange(year_of_last_month,datetime.now().month-1)[1]
+        data = self.baixar_dades_dies(ticker,35)['Close']
+        i = 0
+        b = True
+        while b == True and i < 35:
+            start_date = '{year}-{month}-{day}'.format(year = year_of_last_month,month = datetime.now().month-1,day = last_day_of_last_month-i)
+            try:
+                start_price = round(data[str(start_date)],4)
+                b = False
+            except:
+                i+=1
+        try:
+            end_price = data[-2]
+            change = round((end_price/start_price-1)*100,2)
+            return round(start_price,4),round(end_price,4),change
+        
+        except:
+            print("Unable to calculate monthly performance | Possibly due to a mistake in the code")
+            return -10,-10,-101
+
+
+class current_Info:
     def get_content(self,ticker):
         session = HTMLSession()
         try:

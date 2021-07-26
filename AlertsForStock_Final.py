@@ -7,7 +7,7 @@ from HTML_Email import Emailer
 import gspread
 import collections
 
-from Data import Info
+from Data import current_Info, weekly_Info
 
 def update_dict():
     print("{}:{}:{}, updating dictionary".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
@@ -285,13 +285,20 @@ def reset_everything():
             d[p][4] = [True] * len(d[p][4])  
     return True
     
-def check_all():
-    return 0
-
+def weekly_report():
+    for p in d:
+        if 3 in get_notifications(p):
+            Emailer().weekly_email(p,get_tickers_person(p),get_name(p))
+    
+def monthly_report():
+    for p in d:
+        if 3 in get_notifications(p):
+            Emailer().monthly_email(p,get_tickers_person(p),get_name(p))
+    
 def weekend():
     day = datetime.today().isoweekday()
     print(day)
-    if day == 6 or day == 7:
+    if day == 6:
         check_all()
     while day == 6 or day == 7:
         time.sleep(28888)
@@ -300,7 +307,10 @@ def weekend():
 def sleeping(wakeup):
     day = datetime.today()
     h = day.hour
+    
     if h >= 21:
+        if datetime.today().day == 1:
+            monthly_report()
         print("Going to sleep.")
         t = 3610*3
         time.sleep(t)
@@ -336,6 +346,8 @@ def main():
         if sleeping(7):
             d = update_dict()
             DAILY_NOTSENT = True
+            ALL_TICKERS = get_tickers(d)
+            TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
         day = datetime.today()
         print(str(day.hour)+ ":" + addzero(str(day.minute)) + ":" + addzero(str(day.minute)))
         check_losses_and_wins5(get_tickers(d))
@@ -351,7 +363,7 @@ def main():
         time.sleep(450)
 
 d = update_dict()
-info = Info()
+info = current_Info()
 try:
     main()
 except Exception as exc:

@@ -11,7 +11,7 @@ def update_dict():
     counter = 2
     n = []
     notsent_length = 0
-    gc = gspread.service_account(filename="/usr/lib/python3.5/gspread/service_account.json")
+    gc = gspread.service_account(filename="C:/Users/pauca/Anaconda3/Lib/site-packages/gspread/service_account.json")
     d = collections.defaultdict(list)
     sh = gc.open_by_key("1turCoY14yRgMmZ48oVWMraaSzlgSinYo7m27K-6TnfE")
     worksheet = sh.get_worksheet(0)
@@ -306,11 +306,17 @@ def sleeping(wakeup):
         return True
     return False
 
-
 def main():
-    sender.loss_email("paucase4@gmail.com","TEST",2000,100, False)
-    sender.error_email("ERROR TEST")
+    recipient = "paucase4@gmail.com"
+    tickers = "TSLA"
+    tickers = ["AAPL","T","KO","NVDA","AMC","AMD","GME"]
+    name = "Pau"
     
+    Emailer().monthly_email(recipient,tickers,name)
+#     Emailer().loss_email(recipient,"TEST",2000,100, False)
+#     Emailer().error_email("ERROR TEST")
+#     Emailer().weekly_email(recipient,tickers,name)
+#     Emailer().daily_email(recipient,tickers,name)
 d = update_dict()
 try:
     main()
