@@ -146,6 +146,7 @@ class current_Info:
             return False
         else:
             return True
+
     def get_currency(self,ticker):
         if '.' not in ticker:
             return "$"

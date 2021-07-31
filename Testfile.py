@@ -313,8 +313,9 @@ def main():
     Emailer().monthly_email(recipient,tickers,name)
     Emailer().daily_email(recipient,tickers,name)
     Emailer().weekly_email(recipient,tickers,name)
-    #     Emailer().loss_email(recipient,"TEST",2000,100, False)
+#     Emailer().loss_email(recipient,"TEST",2000,100, False)
 #     Emailer().error_email("ERROR TEST")
+
 #     d = update_dict()
 try:
     main()

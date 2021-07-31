@@ -145,6 +145,7 @@ class Emailer:
             ticker = tickers
             link = "https://finance.yahoo.com/quote/{}/".format(ticker)
             start_price,end_price,perc = weekly_Info().weekly_performance(ticker,8)
+
             try:
                 company_name = get_company_name(ticker)
             except:
@@ -246,6 +247,7 @@ class Emailer:
             body += "</body></html>"
         else:   
             for idx,ticker in enumerate(tickers):
+                print("adding")
                 body += "<tr>"
                 link = "https://finance.yahoo.com/quote/{}/".format(ticker)
                 perc = get_pct(ticker)
@@ -254,6 +256,7 @@ class Emailer:
                 currency = current_Info().get_currency(ticker)
                 if currency == "EUR":
                      currency = "\u20ac"
+
           #      except:
          #           if '.' not in ticker:
           #              currency = "$"
