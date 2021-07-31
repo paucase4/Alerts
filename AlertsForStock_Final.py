@@ -299,7 +299,7 @@ def weekend():
     day = datetime.today().isoweekday()
     print(day)
     if day == 6:
-        check_all()
+        weekly_report()
     while day == 6 or day == 7:
         time.sleep(28888)
         day = datetime.today().isoweekday()
@@ -344,7 +344,10 @@ def main():
         global d
         weekend()
         if sleeping(7):
-            d = update_dict()
+            try:
+                d = update_dict()
+            except:
+                print("Couldn't update user dictionary")
             DAILY_NOTSENT = True
             ALL_TICKERS = get_tickers(d)
             TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)

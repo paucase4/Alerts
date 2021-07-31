@@ -23,12 +23,13 @@ class weekly_Info:
         preus_i_volums = data = dades.history(period='1d', start=dia_fa_x_dies , end=avui)
         
         return preus_i_volums
+
     def weekly_performance(self,ticker,days):
         data = self.baixar_dades_dies(ticker,days)['Close']
         start_date = datetime.now() - timedelta(days = days)
+        
         start_price_comprovation = round(data[str(start_date)[0:10]],4)
         start_price = round(data[0],4)
-        print(start_price,start_price_comprovation)
         if start_price == start_price_comprovation:        
             end_price = data[-1]
             change = round((end_price/start_price-1)*100,2)
@@ -145,3 +146,16 @@ class current_Info:
             return False
         else:
             return True
+    def get_currency(self,ticker):
+        if '.' not in ticker:
+            return "$"
+        else:
+            regex = 'Currency in '
+            web = self.get_content(ticker)
+            if web == "":
+                return '\u20ac'
+            for re_match in re.finditer(regex, web):
+                idx = web.index(re_match.group())
+                currency = web[idx+12:idx+15]
+                return currency
+            return '\u20ac'

@@ -308,19 +308,17 @@ def sleeping(wakeup):
 
 def main():
     recipient = "paucase4@gmail.com"
-    tickers = "TSLA"
-    tickers = ["AAPL","T","KO","NVDA","AMC","AMD","GME"]
+    tickers = ["GME","GRF.MC","3CP.F","NAS.OL"]
     name = "Pau"
-    
     Emailer().monthly_email(recipient,tickers,name)
-#     Emailer().loss_email(recipient,"TEST",2000,100, False)
+    Emailer().daily_email(recipient,tickers,name)
+    Emailer().weekly_email(recipient,tickers,name)
+    #     Emailer().loss_email(recipient,"TEST",2000,100, False)
 #     Emailer().error_email("ERROR TEST")
-#     Emailer().weekly_email(recipient,tickers,name)
-#     Emailer().daily_email(recipient,tickers,name)
-d = update_dict()
+#     d = update_dict()
 try:
     main()
 except Exception as exc:
     print(exc)
-    sender2 = Emailer()
-    sender2.error_email(exc) # report error to host
+#     sender2 = Emailer()
+#     sender2.error_email(exc) # report error to host

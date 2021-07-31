@@ -84,11 +84,20 @@ class Emailer:
             link = "https://finance.yahoo.com/quote/{}/".format(ticker)
             start_price,end_price,perc = weekly_Info().monthly_performance(ticker)
             company_name = get_company_name(ticker)
-            
+            try:
+                currency = current_Info().get_currency(ticker)
+                if currency == "EUR":
+                    currency = "\u20ac"
+            except:
+                if '.' not in ticker:
+                    currency = "$"
+                else:
+                    currency = "\u20ac"
+
             if perc < 0:
-                body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#fb0f29>${START_PRICE}</b></td><td> <b style = color:#fb0f29>${END_PRICE}</b></td><td> <b style = color:#fb0f29>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+                body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#fb0f29>{CURRENCY}{START_PRICE}</b></td><td> <b style = color:#fb0f29>{CURRENCY}{END_PRICE}</b></td><td> <b style = color:#fb0f29>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,CURRENCY = currency, START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
             else:
-                body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#00b52c>${START_PRICE}</b></td><td> <b style = color:#00b52c>${END_PRICE}</b></td><td> <b style = color:#00b52c>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+                body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#00b52c>{CURRENCY}{START_PRICE}</b></td><td> <b style = color:#00b52c>{CURRENCY}{END_PRICE}</b></td><td> <b style = color:#00b52c>{CHANGE}%</b></td>".format(LINK = link,CURRENCY = currency, COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
             body += "</body></html>"
         else:   
             for idx,ticker in enumerate(tickers):
@@ -96,11 +105,19 @@ class Emailer:
                 link = "https://finance.yahoo.com/quote/{}/".format(ticker)
                 start_price,end_price,perc = weekly_Info().monthly_performance(ticker)
                 company_name = get_company_name(ticker)
-                
+                try:
+                    currency = current_Info().get_currency(ticker)
+                    if currency == "EUR":
+                        currency = "\u20ac"
+                except:
+                    if '.' not in ticker:
+                        currency = "$"
+                    else:
+                        currency = "\u20ac"
                 if perc < 0:
-                    body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#fb0f29>${START_PRICE}</b></td><td> <b style = color:#fb0f29>${END_PRICE}</b></td><td> <b style = color:#fb0f29>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+                    body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#fb0f29>{CURRENCY}{START_PRICE}</b></td><td> <b style = color:#fb0f29>{CURRENCY}{END_PRICE}</b></td><td> <b style = color:#fb0f29>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,CURRENCY = currency, START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
                 else:
-                    body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#00b52c>${START_PRICE}</b></td><td> <b style = color:#00b52c>${END_PRICE}</b></td><td> <b style = color:#00b52c>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+                    body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#00b52c>{CURRENCY}{START_PRICE}</b></td><td> <b style = color:#00b52c>{CURRENCY}{END_PRICE}</b></td><td> <b style = color:#00b52c>{CHANGE}%</b></td>".format(LINK = link,CURRENCY = currency, COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
                     ## style="color:#00b52c" green
                     ## style="color:#fb0f29" red
                     ## link for stonks: https://codepen.io/havardob/pen/PoPaWaE
@@ -121,31 +138,56 @@ class Emailer:
         week = monday.isocalendar()[1]
         monday = str(monday)
         year = datetime.now().year
-        subject = "Rendiment Setmanal Setmana {}, del dilluns {}".format(week,monday)
+        subject = "Rendiment Setmanal: Setmana {}, del dilluns {}".format(week,monday)
         body = str(name).upper() + ", <b>Rendiment Setmanal Setmana de la setmana {} de l'any {}</b>".format(week,year) + "<table><tr><th>Empresa</th><th>Inici de Setmana</th><th>Final de Setmana</th><th>Rendiment</th></tr>"
-        html = "<html><body><p><b>{}</b></p>".format(name)        
+        html = "<html><body><p><b>{}</b></p>".format(name)    
         if isinstance(tickers,str):
             ticker = tickers
             link = "https://finance.yahoo.com/quote/{}/".format(ticker)
-            start_price,end_price,perc = weekly_Info().weekly_performance(ticker,10)
-            company_name = get_company_name(ticker)
+            start_price,end_price,perc = weekly_Info().weekly_performance(ticker,8)
+            try:
+                company_name = get_company_name(ticker)
+            except:
+                company_name = ticker
+            try:
+                currency = current_Info().get_currency(ticker)
+                if currency == "EUR":
+                    currency = "\u20ac"
+            except:
+                if '.' not in ticker:
+                    currency = "$"
+                else:
+                    currency = "\u20ac"
             
             if perc < 0:
-                body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#fb0f29>${START_PRICE}</b></td><td> <b style = color:#fb0f29>${END_PRICE}</b></td><td> <b style = color:#fb0f29>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+                body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#fb0f29>{CURRENCY}{START_PRICE}</b></td><td> <b style = color:#fb0f29>{CURRENCY}{END_PRICE}</b></td><td> <b style = color:#fb0f29>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,CURRENCY = currency, START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
             else:
-                body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#00b52c>${START_PRICE}</b></td><td> <b style = color:#00b52c>${END_PRICE}</b></td><td> <b style = color:#00b52c>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+                body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#00b52c>{CURRENCY}{START_PRICE}</b></td><td> <b style = color:#00b52c>{CURRENCY}{END_PRICE}</b></td><td> <b style = color:#00b52c>{CHANGE}%</b></td>".format(LINK = link,CURRENCY = currency, COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
             body += "</body></html>"
         else:   
             for idx,ticker in enumerate(tickers):
+                
                 body += "<tr>"
                 link = "https://finance.yahoo.com/quote/{}/".format(ticker)
-                start_price,end_price,perc = weekly_Info().weekly_performance(ticker,10)
-                company_name = get_company_name(ticker)
                 
+                start_price,end_price,perc = weekly_Info().weekly_performance(ticker,8)
+                try:
+                    company_name = get_company_name(ticker)
+                except:
+                    company_name = ticker
+                try:
+                    currency = current_Info().get_currency(ticker)
+                    if currency == "EUR":
+                        currency = "\u20ac"
+                except:
+                    if '.' not in ticker:
+                        currency = "$"
+                    else:
+                        currency = "\u20ac"
                 if perc < 0:
-                    body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#fb0f29>${START_PRICE}</b></td><td> <b style = color:#fb0f29>${END_PRICE}</b></td><td> <b style = color:#fb0f29>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+                    body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#fb0f29>{CURRENCY}{START_PRICE}</b></td><td> <b style = color:#fb0f29>{CURRENCY}{END_PRICE}</b></td><td> <b style = color:#fb0f29>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,CURRENCY = currency, START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
                 else:
-                    body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#00b52c>${START_PRICE}</b></td><td> <b style = color:#00b52c>${END_PRICE}</b></td><td> <b style = color:#00b52c>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
+                    body += "<td> <a href='{LINK}'><b>{COMPANY_NAME}</b></a></td><td> <b style = color:#00b52c>{CURRENCY}{START_PRICE}</b></td><td> <b style = color:#00b52c>{CURRENCY}{END_PRICE}</b></td><td> <b style = color:#00b52c>{CHANGE}%</b></td>".format(LINK = link,COMPANY_NAME = company_name,CURRENCY = currency, START_PRICE = start_price,END_PRICE = end_price,CHANGE = perc)
                     ## style="color:#00b52c" green
                     ## style="color:#fb0f29" red
                     ## link for stonks: https://codepen.io/havardob/pen/PoPaWaE
@@ -184,16 +226,23 @@ class Emailer:
             perc = get_pct(ticker)
             link = "https://finance.yahoo.com/quote/{}/".format(ticker)
             price = get_price(ticker)
-            
+            currency = current_Info().get_currency(ticker)
+            if currency == "EUR":
+                currency = "\u20ac"
+       #     except:
+        #        if '.' not in ticker:
+         #           currency = "$"
+          #      else:
+           #         currency = "\u20ac"
             try:
                 company_name = info.company_name(ticker)
             except:
                 company_name = ticker
             if perc < 0:
-                body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#fb0f29>${}</b></td><td> <b style = color:#fb0f29>{}%</b></td>".format(link,company_name,price,perc)
+                body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#fb0f29>{}{}</b></td><td> <b style = color:#fb0f29>{}%</b></td>".format(link,company_name,currency,price,perc)
                 count_1 += 1
             else:
-                body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#00b52c>${}</b></td><td> <b style = color:#00b52c>{}%</b></td>".format(link,company_name,price,perc)
+                body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#00b52c>{}{}</b></td><td> <b style = color:#00b52c>{}%</b></td>".format(link,company_name,currency,price,perc)
             body += "</body></html>"
         else:   
             for idx,ticker in enumerate(tickers):
@@ -201,15 +250,24 @@ class Emailer:
                 link = "https://finance.yahoo.com/quote/{}/".format(ticker)
                 perc = get_pct(ticker)
                 price = get_price(ticker)
+            #    try:
+                currency = current_Info().get_currency(ticker)
+                if currency == "EUR":
+                     currency = "\u20ac"
+          #      except:
+         #           if '.' not in ticker:
+          #              currency = "$"
+           #         else:
+           #             currency = "\u20ac"
                 try:
                     company_name = info.company_name(ticker)
                 except:
                     company_name = ticker
                 if perc < 0:
-                    body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#fb0f29>${}</b></td><td> <b style = color:#fb0f29>{}%</b></td>".format(link,company_name,price,perc)
+                    body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#fb0f29>{}{}</b></td><td> <b style = color:#fb0f29>{}%</b></td>".format(link,company_name,currency,price,perc)
                     count_1 += 1
                 else:
-                    body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#00b52c>${}</b></td><td> <b style = color:#00b52c>{}%</b></td>".format(link,company_name,price,perc)
+                    body += "<td> <a href='{}'><b>{}</b></a></td><td> <b style = color:#00b52c>{}{}</b></td><td> <b style = color:#00b52c>{}%</b></td>".format(link,company_name,currency,price,perc)
                     ## style="color:#00b52c" green
                     ## style="color:#fb0f29" red
                     ## link for stonks: https://codepen.io/havardob/pen/PoPaWaE
@@ -368,7 +426,6 @@ class Emailer:
     </body>
 </html>
 """.format(ei=subject,body=body, subtype='html')
-        print(body)
         body = MIMEText(body, 'html')
         msg.set_content(body)
         send(recipient,msg)
@@ -425,4 +482,3 @@ class Emailer:
 
 
     
-
