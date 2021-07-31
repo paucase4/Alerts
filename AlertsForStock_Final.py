@@ -299,8 +299,12 @@ def weekend():
     day = datetime.today().isoweekday()
     print(day)
     if day == 6:
+        if datetime.today().day == 1:
+            monthly_report()
         weekly_report()
     while day == 6 or day == 7:
+        if datetime.today().day == 1:
+            monthly_report()
         time.sleep(28888)
         day = datetime.today().isoweekday()
         

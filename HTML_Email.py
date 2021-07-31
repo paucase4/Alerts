@@ -247,7 +247,6 @@ class Emailer:
             body += "</body></html>"
         else:   
             for idx,ticker in enumerate(tickers):
-                print("adding")
                 body += "<tr>"
                 link = "https://finance.yahoo.com/quote/{}/".format(ticker)
                 perc = get_pct(ticker)
