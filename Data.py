@@ -20,7 +20,7 @@ class weekly_Info:
         dies_anteriors = timedelta(days = dies_anteriors)
         dia_fa_x_dies = avui - dies_anteriors 
         
-        preus_i_volums = data = dades.history(period='1d', start=dia_fa_x_dies , end=avui)
+        preus_i_volums = dades.history(period='1d', start=dia_fa_x_dies , end=avui)
         
         return preus_i_volums
 
@@ -39,26 +39,26 @@ class weekly_Info:
         
         
     def monthly_performance(self,ticker):
-        year_40_before = datetime.now() - timedelta(days = 40)
-        year_of_last_month = year_40_before.year
-        last_day_of_last_month = calendar.monthrange(year_of_last_month,datetime.now().month-1)[1]
+        date1 = datetime.now() - timedelta(days = 40) # date 40 days ago
+        month1 = date1.month
+        year1 = date1.year # year 40 days ago
+        day1 = calendar.monthrange(year1,datetime.now().month-2)[1]
         data = self.baixar_dades_dies(ticker,35)['Close']
         i = 0
         b = True
         while b == True and i < 35:
-            start_date = '{year}-{month}-{day}'.format(year = year_of_last_month,month = datetime.now().month-1,day = last_day_of_last_month-i)
+            start_date = '{year}-{month}-{day}'.format(year = year1, month = month1, day = day1-i)
             try:
                 start_price = round(data[str(start_date)],4)
                 b = False
             except:
                 i+=1
         try:
-            end_price = data[-2]
+            end_price = data[-1]
             change = round((end_price/start_price-1)*100,2)
             return round(start_price,4),round(end_price,4),change
-        
         except:
-            print("Unable to calculate monthly performance | Possibly due to a mistake in the code")
+            print("Unable to calculate monthly performance")
             return -10,-10,-101
 
 

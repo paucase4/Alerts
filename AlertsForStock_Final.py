@@ -64,7 +64,7 @@ def set_as_sent(p,index):
     d[p][3][index] = False
 
 def get_tickers(d):
-    s = []    
+    all_tickers = []    
     for p in d:
         if 1 not in get_notifications(p) and 2 not in get_notifications(p) and 4 not in get_notifications(p):
             pass

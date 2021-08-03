@@ -73,12 +73,12 @@ def get_company_name(ticker):
     return company_name
 class Emailer:
     def monthly_email(self,recipient,tickers,name):
-        month = datetime.now().month
+        month = datetime.now().month - 1
         months = ['Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre']
         year = datetime.now().year
         subject = "Rendiment Mensual {month_name}, {month}-{year}".format(month_name = months[month-1], month= month, year = year)
         body = str(name).upper() + ", <b>Rendiment Mensual {} de l'any {}</b>".format(months[month-1],year) + "<table><tr><th>Empresa</th><th>Inici de Mes</th><th>Final de Mes</th><th>Rendiment</th></tr>"
-        html = "<html><body><p><b>{}</b></p>".format(name)        
+        html = "<html><body><p><b>{}</b></p>".format(name)
         if isinstance(tickers,str):
             ticker = tickers
             link = "https://finance.yahoo.com/quote/{}/".format(ticker)
