@@ -278,7 +278,7 @@ def main():
         if DAILY_NOTSENT and datetime.today().hour == 14:
             for p in d:
                 if 3 in d[p].notifications:
-                    sender.daily_email(d]p].email,d[p].tickers,d[p].name)
+                    sender.daily_email(d[p].email,d[p].tickers,d[p].name)
                     DAILY_NOTSENT = False
         time.sleep(450)
 
