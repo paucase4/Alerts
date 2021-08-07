@@ -269,7 +269,7 @@ def main():
             DAILY_NOTSENT = True
             ALL_TICKERS = get_tickers(d)
             TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
-         
+        
         check_losses_and_wins5(ALL_TICKERS)
         check_losses_and_wins10(ALL_TICKERS)
         if connection():
