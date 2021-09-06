@@ -255,12 +255,14 @@ def main():
     reset_everything()
     DAILY_NOTSENT = True
     TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
-    
     while True:
+        global checkpoint
         global d
+        checkpoint = 1
         start_message()
-        
+        checkpoint = 2
         weekend()
+        checkpoint = 3
         if sleeping(7):
             try:
                 d = update_dict()
@@ -269,11 +271,14 @@ def main():
             DAILY_NOTSENT = True
             ALL_TICKERS = get_tickers(d)
             TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
-        
+        checkpoint = 4
         check_losses_and_wins5(ALL_TICKERS)
+        checkpoint = 5
         check_losses_and_wins10(ALL_TICKERS)
+        checkpoint = 6
         if connection():
             TARGET_NOT_SENT = allprices(TARGET_TICKERS,TARGET_PRICES,TARGET_NOT_SENT)     # check prices w targets and email if necessary. If emailed, change notsent.
+        checkpoint = 7
         day = datetime.today()
         if DAILY_NOTSENT and datetime.today().hour == 14:
             for p in d:
@@ -289,18 +294,18 @@ MAIL_PAU = "paucase4@gmail.com"
 sender = Emailer()
 TARGET_TICKERS = ["V","T","EA","AAPL","GOOGL","AMZN","ADBE"]
 TARGET_PRICES = [200,27,125,120,1900,2950,440]
+checkpoint = 0
 
 
-
-def error_message(e):
+def error_message(e,checkpoint):
     exception_type, exception_object, exception_traceback = sys.exc_info()
     line_number = exception_traceback.tb_lineno
     filename = exception_traceback.tb_frame.f_code.co_filename
-    return f"Exception: {e} <br>\nException Type: {exception_type}\n<br>Exception File: {filename}\n<br>Exception in line: {line_number}"
-
+    return f"Exception: {e} <br>\nException Type: {exception_type}\n<br>Exception File: {filename}\n<br>Exception in line: {line_number}\n<br>Checkpoint: {checkpoint}"
+    
 try:
     main()
 except Exception as e:
-    error_message = error_message(e)
+    error_message = error_message(e,checkpoint)
     print(error_message)
     Emailer().error_email(error_message) # report error to host
