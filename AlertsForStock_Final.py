@@ -5,7 +5,7 @@ import time
 import urllib3 as u3
 import gspread
 import collections
-
+import sys
 from Data import current_Info, weekly_Info
 from Client import Client
 from HTML_Email import Emailer
@@ -290,9 +290,17 @@ sender = Emailer()
 TARGET_TICKERS = ["V","T","EA","AAPL","GOOGL","AMZN","ADBE"]
 TARGET_PRICES = [200,27,125,120,1900,2950,440]
 
+
+
+def error_message(e):
+    exception_type, exception_object, exception_traceback = sys.exc_info()
+    line_number = exception_traceback.tb_lineno
+    filename = exception_traceback.tb_frame.f_code.co_filename
+    return f"Exception: {e} <br>\nException Type: {exception_type}\n<br>Exception File: {filename}\n<br>Exception in line: {line_number}"
+
 try:
     main()
-except Exception as exc:
-    print(exc)
-    sender2 = Emailer()
-    sender2.error_email(exc) # report error to host
+except Exception as e:
+    error_message = error_message(e)
+    print(error_message)
+    Emailer().error_email(error_message) # report error to host
