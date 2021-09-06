@@ -255,7 +255,7 @@ def main():
     reset_everything()
     DAILY_NOTSENT = True
     TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
-    while True:
+    while True:        
         global checkpoint
         global d
         checkpoint = 1
@@ -306,6 +306,7 @@ def error_message(e,checkpoint):
 try:
     main()
 except Exception as e:
+    Emailer().error_email(e)
     error_message = error_message(e,checkpoint)
     print(error_message)
     Emailer().error_email(error_message) # report error to host
