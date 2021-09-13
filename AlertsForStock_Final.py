@@ -48,7 +48,7 @@ def update_dict():# will return dictionary with email as key and all features as
         notsent1 = [True] * len(tickers) 
         
         val1 = mail_cell
-        user_id = counter - 1 
+        user_id = counter - 1
         val2 = Client(user_id ,name, mail_cell, signup_date, tickers,notifications,notsent1)
         
         notsent_length = 0
@@ -60,12 +60,17 @@ def update_dict():# will return dictionary with email as key and all features as
     return d
 
 def get_tickers(d):
-    all_tickers = []    
+    all_tickers = [] 
+    notsent1 = {}
+    notsent2 = {}
     for person in d:
         for ticker in d[person].tickers:
             if ticker not in all_tickers:
                 all_tickers.append(ticker)
-    return all_tickers
+    for t in  all_tickers:
+        notsent1[t] = True
+        notsent2[t] = True
+    return all_tickers,notsent1,notsent2
 
 def connection():
     http = u3.PoolManager()
@@ -124,6 +129,7 @@ def addzero(string):
         return string
         
 def check_losses_and_wins5(tickers):
+    global NOTSENT1
     pct = 5
     prices = get_prices(tickers)
     data_found = True
@@ -136,23 +142,25 @@ def check_losses_and_wins5(tickers):
                 data_found = False
             if data_found:
                 change = get_change(ticker)
-                if 5.0 < abs(change) and connection() and change != -101:                        
+                if 5.0 < abs(change) and connection() and change != -101 and NOTSENT1[ticker] == True:                        
                     for p in d:
                         if change < 0 and 1 in d[p].notifications:
-                            if tickers[idx] in d[p].tickers and d[p].notsent1[idx] == True:
+                            if tickers[idx] in d[p].tickers:
                                 print("5% down: " + str(tickers[idx]) + " " + str(p))
                                 sender.loss_email(d[p].email,tickers[idx],prices[idx],change,False)
-                                d[p].notsent1[idx] = False
+                    
                         elif change > 0 and 2 in d[p].notifications:
-                            if tickers[idx] in d[p].tickers and d[p].notsent1[idx] == True:
+                            if tickers[idx] in d[p].tickers:
                                 print("5% up: " + str(tickers[idx]) + " " + str(p))
                                 sender.win_email(d[p].email,tickers[idx],prices[idx],change)
-                                d[p].notsent1[idx] = False
+                                
+                    NOTSENT1[ticker] = False
             else:
                 print("Ticker {} is causing a problem.".format(ticker))
                 data_found = True
     print("{}:{}:{}, finished checking 5%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
 def check_losses_and_wins10(tickers):
+    global NOTSENT2
     print("{}:{}:{}, start checking 10%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
     pct = 10
     prices = get_prices(tickers)
@@ -165,19 +173,19 @@ def check_losses_and_wins10(tickers):
                 data_found = False
             if data_found:
                 change = get_change(tickers[idx])
-                if 10.0 < abs(change) and connection() and change != -101:                        
+                if 10.0 < abs(change) and connection() and change != -101 and NOTSENT2[tickers[idx]] == True:                        
                     for p in d:
                         if 4 in d[p].notifications:
                             if change < 0:
-                                if tickers[idx] in d[p].tickers and d[p].notsent2[idx] == True:
+                                if tickers[idx] in d[p].tickers:
                                     print("10% down: " + str(tickers[idx]) + " " + str(p))
                                     sender.loss_email(d[p].email,tickers[idx],prices[idx],change,False)
-                                    d[p].notsent2[idx] = False
+                                    
                             elif change > 0:
-                                if tickers[idx] in d[p].tickers and d[p].notsent2[idx] == True and 3 in d[p].notifications:
+                                if tickers[idx] in d[p].tickers and 3 in d[p].notifications:
                                     print("10% up: " + str(tickers[idx]) + " " + str(p))
                                     sender.win_email(d[p].email,tickers[idx],prices[idx],change)
-                                    d[p].notsent2[idx] = False
+                    NOTSENT2 = False
             else:
                 print("Ticker {} is causing a problem.".format(tickers[idx]))
                 data_found = True
@@ -186,13 +194,11 @@ def check_losses_and_wins10(tickers):
                                 
 def reset_everything():
     global d
-    ALL_TICKERS = get_tickers(d)
+    global NOTSENT1
+    global NOTSENT2
+    ALL_TICKERS,NOTSENT1,NOTSENT2 = get_tickers(d)
     DAILY_NOTSENT = True
     TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
-    
-    for person in d:
-        d[person].notsent1 = [True] * len(d[person].tickers)
-        d[person].notsent2 = d[person].notsent1
     return True
     
 def weekly_report():
@@ -258,6 +264,8 @@ def main():
     while True:        
         global checkpoint
         global d
+        global NOTSENT1
+        global NOTSENT2
         checkpoint = 1
         start_message()
         checkpoint = 2
@@ -269,12 +277,15 @@ def main():
             except:
                 print("Couldn't update user dictionary.")
             DAILY_NOTSENT = True
-            ALL_TICKERS = get_tickers(d)
             TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
+            ALL_TICKERS,NOTSENT1,NOTSENT2 = get_tickers(d)
+        
         checkpoint = 4
         check_losses_and_wins5(ALL_TICKERS)
+        
         checkpoint = 5
         check_losses_and_wins10(ALL_TICKERS)
+        
         checkpoint = 6
         if connection():
             TARGET_NOT_SENT = allprices(TARGET_TICKERS,TARGET_PRICES,TARGET_NOT_SENT)     # check prices w targets and email if necessary. If emailed, change notsent.
@@ -295,7 +306,7 @@ sender = Emailer()
 TARGET_TICKERS = ["V","T","EA","AAPL","GOOGL","AMZN","ADBE"]
 TARGET_PRICES = [200,27,125,120,1900,2950,440]
 checkpoint = 0
-
+ALL_TICKERS,NOTSENT1,NOTSENT2 = get_tickers(d)
 
 def error_message(e,checkpoint):
     exception_type, exception_object, exception_traceback = sys.exc_info()

@@ -3,13 +3,15 @@ import yfinance as yf
 from datetime import datetime,timedelta,date
 import time
 import urllib3 as u3
-from HTML_Email import Emailer
 import gspread
 import collections
-
+import sys
 from Data import current_Info, weekly_Info
+from Client import Client
+from HTML_Email import Emailer
 
-def update_dict():
+def update_dict():# will return dictionary with email as key and all features as attrributes
+    
     print("{}:{}:{}, updating dictionary".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
     counter = 2
     n = []
@@ -22,129 +24,53 @@ def update_dict():
         mail_cell = str(worksheet.acell('B' + str(counter)).value).replace(" ", "")
         if "@" not in mail_cell:
             break
-        name_cell = str(worksheet.acell('C' + str(counter)).value).replace(" ", "")
-        tickers_cell = str(worksheet.acell('D' + str(counter)).value).replace(" ", "").split(",")
-        notification_cell = str(worksheet.acell('E' + str(counter)).value).replace(" ", "").split(",")
+        signup_date = str(worksheet.acell('A' + str(counter)).value.strip())
+        name = str(worksheet.acell('C' + str(counter)).value).replace(" ", "")
+        tickers = list(dict.fromkeys(str(worksheet.acell('D' + str(counter)).value).replace(" ", "").split(",")))
+        notifications_pre = str(worksheet.acell('E' + str(counter)).value).replace(" ", "").split(",")
         #   qty_cell = str(worksheet.acell('E' + str(counter)).value).replace(" ", "").split(",")
+        notifications = []
         
-        for asd in notification_cell:
-            if asd == "Baixadadel5%":
-                n.append(1)
-                notsent_length += 1 
-            elif asd == "Pujadadel5%":
-                n.append(2)
+        for notification in notifications_pre:
+            if notification == "Baixadadel5%":
+                notifications.append(1)
+                notsent_length += 1
+            elif notification == "Pujadadel5%":
+                notifications.append(2)
                 if notsent_length == 0:
                     notsent_length += 1
-            elif asd == "Notificaciódiàriadelpreu(16:00)":
-                n.append(3)
-            elif asd == "Avísquanbaixiopugiun10%apartird'avui":
-                n.append(4)
+            elif notification == "Notificaciódiàriadelpreu(16:00)":
+                notifications.append(3)
+            elif notification == "Avísquanbaixiopugiun10%apartird'avui":
+                notifications.append(4)
                 notsent_length += 1
         
-        notsent1 = [True] * len(tickers_cell) 
-        notsent2 = [True] * len(tickers_cell) 
-        notsent3 = [True] * len(tickers_cell)
+        notsent1 = [True] * len(tickers) 
         
         val1 = mail_cell
+        user_id = counter - 1
+        val2 = Client(user_id ,name, mail_cell, signup_date, tickers,notifications,notsent1)
         
-        if notsent_length == 1:
-            val2 = [name_cell, tickers_cell, n,notsent1]
-        elif notsent_length == 2:
-            val2 = [name_cell, tickers_cell, n,notsent1,notsent2]
-        elif notsent_length == 0:
-            val2 = [name_cell, tickers_cell, n]
         notsent_length = 0
         n = []
+        
         d[val1] = val2
         counter += 1
     print("{}:{}:{}, finished updating dictionary".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
     return d
 
-def set_as_sent(p,index):
-    d[p][3][index] = False
-
 def get_tickers(d):
-    all_tickers = []    
-    for p in d:
-        if 1 not in get_notifications(p) and 2 not in get_notifications(p) and 4 not in get_notifications(p):
-            pass
-        else:
-            tickers = d[p][1]
-            for t in tickers:
-                if t not in all_tickers:
-                    all_tickers.append(t)
-    return all_tickers
-
-def get_tickers_person(p,d):
-    all_tickers = []
-    tickers = d[p][1]
-    for t in tickers:
-        if t not in all_tickers:
-            all_tickers.append(t)
-    return all_tickers    
-    
-def get_mails(d):
-    all_mails = []
+    all_tickers = [] 
+    notsent1 = {}
+    notsent2 = {}
     for person in d:
-        all_mails.append(person)
-    return all_mails
-
-def get_name(p,d):
-    all_names = []
-    return d[p][0]
-
-
-def get_notifications(person,d):
-
-    
-    return d[person][2]
-
-def get_notsent1(person):
-    e = d[person][3]
-    return e
-
-def get_notsent2(person):
-    try:
-        f = d[person][4]
-        return f 
-    except:
-        pass
-
-def set_as_sent(p,num,index):
-    if len(d[p][3]) < 1:
-        d[p][3][num][index] = False
-    else:
-        d[p][3][index] = False
-
-def set_as_sent2(p,num,index):
-    if len(d[p][4]) < 1:
-        d[p][4][num][index] = False
-    else:
-        d[p][4][index] = False
-
-DAILY_NOTSENT = True
-MAIL_PAU = "paucase4@gmail.com"
-
-sender = Emailer()
-
-TARGET_TICKERS = ["V","T","EA","AAPL","GOOGL","AMZN","ADBE"]
-TARGET_PRICES = [200,27,125,120,1900,2950,440]
-
-
-def same_day(s1):
-    last_close_day = str(s1.index[-1])[0:10]
-    today = str(date.today())
-    counter = 0
-    i = 0
-    while i < len(today):
-        letter = today[i]
-        if letter == last_close_day[i]:
-            counter += 1
-        i +=1
-    if counter == len(today):
-        return True
-    else:
-        return False
+        for ticker in d[person].tickers:
+            if ticker not in all_tickers:
+                all_tickers.append(ticker)
+    for t in  all_tickers:
+        notsent1[t] = True
+        notsent2[t] = True
+    return all_tickers,notsent1,notsent2
 
 def connection():
     http = u3.PoolManager()
@@ -168,8 +94,6 @@ def allprices(tickers,target_prices,notsent):
     
     return notSent
 
-
-
 def get_price(ticker):
     a = ""
     if connection():
@@ -177,7 +101,6 @@ def get_price(ticker):
             close = info.price(ticker)
         except:
             return -10
-            #print("Error occurred while trying to download data of " + str(ticker))
     else:
         print("No connection.")
         return -10
@@ -189,15 +112,6 @@ def get_prices(tickers):
         price = get_price(ticker)
         prices.append(price)
     return prices
-        
-
-
-def addzero(string):
-    if len(string) == 1:
-        return "0" + string
-    else:
-        return string
-    
 
 def get_change(ticker):
     price = get_price(ticker)
@@ -207,8 +121,15 @@ def get_change(ticker):
         return -101
         #print('Error downloading data | Ticker: ' + ticker )
     return percent_change
+
+def addzero(string):
+    if len(string) == 1:
+        return "0" + string
+    else:
+        return string
         
 def check_losses_and_wins5(tickers):
+    global NOTSENT1
     pct = 5
     prices = get_prices(tickers)
     data_found = True
@@ -221,26 +142,26 @@ def check_losses_and_wins5(tickers):
                 data_found = False
             if data_found:
                 change = get_change(ticker)
-                if 5.0 < abs(change) and connection() and change != -101:                        
+                if 5.0 < abs(change) and connection() and change != -101 and NOTSENT1[ticker] == True:                        
                     for p in d:
-                        if change < 0:
-                            print("lower than 5!")
-                            if 1 in get_notifications(p):
-                                if tickers[idx] in get_tickers_person(p) and get_notsent1(p)[d[p][1].index(tickers[idx])] == True:
-                                    print("5% down: " + str(tickers[idx]) + " " + str(p))
-                                    sender.loss_email(p,tickers[idx],prices[idx],change, False)
-                                    set_as_sent(p,0,d[p][1].index(tickers[idx]))
-                        elif change > 0:
-                            if 2 in get_notifications(p):
-                                if tickers[idx] in get_tickers_person(p) and get_notsent1(p)[d[p][1].index(tickers[idx])] == True:
-                                    print("5% up: " + str(tickers[idx]) + " " + str(p))
-                                    sender.win_email(p,tickers[idx],prices[idx],change)
-                                    set_as_sent(p,0,d[p][1].index(tickers[idx]))
+                        if change < 0 and 1 in d[p].notifications:
+                            if tickers[idx] in d[p].tickers:
+                                print("5% down: " + str(tickers[idx]) + " " + str(p))
+                                sender.loss_email(d[p].email,tickers[idx],prices[idx],change,False)
+                    
+                        elif change > 0 and 2 in d[p].notifications:
+                            if tickers[idx] in d[p].tickers:
+                                print("5% up: " + str(tickers[idx]) + " " + str(p))
+                                sender.win_email(d[p].email,tickers[idx],prices[idx],change)
+                                
+                    NOTSENT1[ticker] = False
             else:
                 print("Ticker {} is causing a problem.".format(ticker))
                 data_found = True
     print("{}:{}:{}, finished checking 5%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
+    
 def check_losses_and_wins10(tickers):
+    global NOTSENT2
     print("{}:{}:{}, start checking 10%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
     pct = 10
     prices = get_prices(tickers)
@@ -253,19 +174,19 @@ def check_losses_and_wins10(tickers):
                 data_found = False
             if data_found:
                 change = get_change(tickers[idx])
-                if 10.0 < abs(change) and connection() and change != -101:                        
+                if 10.0 < abs(change) and connection() and change != -101 and NOTSENT2[tickers[idx]] == True:                        
                     for p in d:
-                        if 4 in get_notifications(p):
+                        if 4 in d[p].notifications:
                             if change < 0:
-                                if tickers[idx] in get_tickers_person(p) and get_notsent2(p)[d[p][1].index(tickers[idx])] == True:
+                                if tickers[idx] in d[p].tickers:
                                     print("10% down: " + str(tickers[idx]) + " " + str(p))
-                                    sender.loss_email(p,tickers[idx],prices[idx],change, False)
-                                    set_as_sent2(p,0,d[p][1].index(tickers[idx]))
+                                    sender.loss_email(d[p].email,tickers[idx],prices[idx],change,False)
+                                    
                             elif change > 0:
-                                if tickers[idx] in get_tickers_person(p) and get_notsent2(p)[d[p][1].index(tickers[idx])] == True and 3 in get_notifications(p):
+                                if tickers[idx] in d[p].tickers and 3 in d[p].notifications:
                                     print("10% up: " + str(tickers[idx]) + " " + str(p))
-                                    sender.win_email(p,tickers[idx],prices[idx],change)
-                                    set_as_sent2(p,0,d[p][1].index(tickers[idx]))
+                                    sender.win_email(d[p].email,tickers[idx],prices[idx],change)
+                    NOTSENT2 = False
             else:
                 print("Ticker {} is causing a problem.".format(tickers[idx]))
                 data_found = True
@@ -274,32 +195,25 @@ def check_losses_and_wins10(tickers):
                                 
 def reset_everything():
     global d
-    ALL_TICKERS = get_tickers(d)
+    global NOTSENT1
+    global NOTSENT2
+    ALL_TICKERS,NOTSENT1,NOTSENT2 = get_tickers(d)
     DAILY_NOTSENT = True
     TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
-    
-    for p in d:
-        if len(d[p]) > 3:
-            d[p][3] = [True] * len(d[p][3])
-        if len(d[p]) == 5:
-            d[p][4] = [True] * len(d[p][4])  
     return True
     
 def weekly_report():
-    for p in d:
-        if 3 in get_notifications(p):
-            Emailer().weekly_email(p,get_tickers_person(p),get_name(p))
+    for person in d:
+        if 3 in d[person].notifications:
+            Emailer().weekly_email(d[person].email,d[person].tickers,d[person].name)
     
-def monthly_report(d):
-    for p in d:
-        print(p)
-        if 3 in get_notifications(p,d):
-            print("AS")
-            Emailer().monthly_email(p,get_tickers_person(p,d),get_name(p,d))
+def monthly_report():
+    for person in d:
+        if 3 in d[person].notifications:
+            Emailer().monthly_email(d[person].email,d[person].tickers,d[person].name)
     
 def weekend():
     day = datetime.today().isoweekday()
-    print(day)
     if day == 6:
         if datetime.today().day == 1:
             monthly_report()
@@ -340,13 +254,71 @@ def sleeping(wakeup):
         return True
     return False
 
+def start_message():
+    day = datetime.today()
+    print(str(day.hour)+ ":" + addzero(str(day.minute)) + ":" + addzero(str(day.minute)))
+    
+def main():
+    reset_everything()
+    DAILY_NOTSENT = True
+    TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
+    while True:        
+        global checkpoint
+        global d
+        global NOTSENT1
+        global NOTSENT2
+        checkpoint = 1
+        start_message()
+        checkpoint = 2
+        weekend()
+        checkpoint = 3
+        if sleeping(7):
+            try:
+                d = update_dict()
+            except:
+                print("Couldn't update user dictionary.")
+            DAILY_NOTSENT = True
+            TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
+            ALL_TICKERS,NOTSENT1,NOTSENT2 = get_tickers(d)
+        
+        checkpoint = 4
+        check_losses_and_wins5(ALL_TICKERS)
+        
+        checkpoint = 5
+        check_losses_and_wins10(ALL_TICKERS)
+        
+        checkpoint = 6
+        if connection():
+            TARGET_NOT_SENT = allprices(TARGET_TICKERS,TARGET_PRICES,TARGET_NOT_SENT)     # check prices w targets and email if necessary. If emailed, change notsent.
+        checkpoint = 7
+        day = datetime.today()
+        if DAILY_NOTSENT and datetime.today().hour == 14:
+            for p in d:
+                if 3 in d[p].notifications:
+                    sender.daily_email(d[p].email,d[p].tickers,d[p].name)
+                    DAILY_NOTSENT = False
+        time.sleep(450)
+
+d = update_dict()
+info = current_Info()
+DAILY_NOTSENT = True
+MAIL_PAU = "paucase4@gmail.com"
+sender = Emailer()
+TARGET_TICKERS = ["V","T","EA","AAPL","GOOGL","AMZN","ADBE"]
+TARGET_PRICES = [200,27,125,120,1900,2950,440]
+checkpoint = 0
+ALL_TICKERS,NOTSENT1,NOTSENT2 = get_tickers(d)
+
 
 def main():
-    d = update_dict()
-    recipient = "paucase4@gmail.com"
-    tickers = ["GME","GRF.MC","3CP.F","NAS.OL"]
-    name = "Pau"
-    monthly_report(d)
+    global d
+    global ALL_TICKERS
+    check_losses_and_wins5(ALL_TICKERS)
+#     print()
+#     print("3")
+#     recipient = "paucase4@gmail.com"
+#     tickers = ["GME","GRF.MC","3CP.F","NAS.OL"]
+#     name = "Pau"
 #     Emailer().loss_email(recipient,"TEST",2000,100, False)
 #     Emailer().error_email("ERROR TEST")
 
