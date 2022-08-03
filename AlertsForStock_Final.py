@@ -16,7 +16,7 @@ def update_dict():# will return dictionary with email as key and all features as
     counter = 2
     n = []
     notsent_length = 0
-    gc = gspread.service_account(filename="C:/Users/pauca/Anaconda3/Lib/site-packages/gspread/service_account.json")
+    gc = gspread.service_account(filename="/usr/lib/python3.5/gspread/service_account.json")
     d = collections.defaultdict(list)
     sh = gc.open_by_key("1turCoY14yRgMmZ48oVWMraaSzlgSinYo7m27K-6TnfE")
     worksheet = sh.get_worksheet(0)
@@ -185,7 +185,7 @@ def check_losses_and_wins10(tickers):
                                 if tickers[idx] in d[p].tickers and 3 in d[p].notifications:
                                     print("10% up: " + str(tickers[idx]) + " " + str(p))
                                     sender.win_email(d[p].email,tickers[idx],prices[idx],change)
-                    NOTSENT2 = False
+                    NOTSENT2[tickers[idx]] = False
             else:
                 print("Ticker {} is causing a problem.".format(tickers[idx]))
                 data_found = True
