@@ -6,72 +6,21 @@ import urllib3 as u3
 import gspread
 import collections
 import sys
+import alpaca_trade_api as tradeapi
+from alpaca_trade_api.rest import REST, TimeFrame
+from alpaca_trade_api.stream import Stream
 from Data import current_Info, weekly_Info
 from Client import Client
 from HTML_Email import Emailer
 
-def update_dict():# will return dictionary with email as key and all features as attrributes
-    
-    print("{}:{}:{}, updating dictionary".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
-    counter = 2
-    n = []
-    notsent_length = 0
-    gc = gspread.service_account(filename="/usr/lib/python3.5/gspread/service_account.json")
-    d = collections.defaultdict(list)
-    sh = gc.open_by_key("1turCoY14yRgMmZ48oVWMraaSzlgSinYo7m27K-6TnfE")
-    worksheet = sh.get_worksheet(0)
-    while True:
-        mail_cell = str(worksheet.acell('B' + str(counter)).value).replace(" ", "")
-        if "@" not in mail_cell:
-            break
-        signup_date = str(worksheet.acell('A' + str(counter)).value.strip())
-        name = str(worksheet.acell('C' + str(counter)).value).replace(" ", "")
-        tickers = list(dict.fromkeys(str(worksheet.acell('D' + str(counter)).value).replace(" ", "").split(",")))
-        notifications_pre = str(worksheet.acell('E' + str(counter)).value).replace(" ", "").split(",")
-        #   qty_cell = str(worksheet.acell('E' + str(counter)).value).replace(" ", "").split(",")
-        notifications = []
-        
-        for notification in notifications_pre:
-            if notification == "Baixadadel5%":
-                notifications.append(1)
-                notsent_length += 1
-            elif notification == "Pujadadel5%":
-                notifications.append(2)
-                if notsent_length == 0:
-                    notsent_length += 1
-            elif notification == "Notificaciódiàriadelpreu(16:00)":
-                notifications.append(3)
-            elif notification == "Avísquanbaixiopugiun10%apartird'avui":
-                notifications.append(4)
-                notsent_length += 1
-        
-        notsent1 = [True] * len(tickers) 
-        
-        val1 = mail_cell
-        user_id = counter - 1
-        val2 = Client(user_id ,name, mail_cell, signup_date, tickers,notifications,notsent1)
-        
-        notsent_length = 0
-        n = []
-        
-        d[val1] = val2
-        counter += 1
-    print("{}:{}:{}, finished updating dictionary".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
-    return d
-
-def get_tickers(d):
-    all_tickers = [] 
-    notsent1 = {}
-    notsent2 = {}
-    for person in d:
-        for ticker in d[person].tickers:
-            if ticker not in all_tickers:
-                all_tickers.append(ticker)
-    for t in  all_tickers:
-        notsent1[t] = True
-        notsent2[t] = True
-    return all_tickers,notsent1,notsent2
-
+def get_keys():
+    path = ""
+    with open(path + '/api_key.txt','rb') as f:
+        key = str(f.readlines()[0])[2:-1]
+    with open(path + '/secret_key.txt','rb') as f:
+        lines2 = str(f.readlines()[0])[2:-1]
+    return key,lines2
+ 
 def connection():
     http = u3.PoolManager()
     try:
@@ -80,25 +29,13 @@ def connection():
     except:
         return False
 
-def allprices(tickers,target_prices,notsent):
-    print("{}:{}:{}, start checking target".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
-    
-    notSent = notsent
-    for idx,ticker in enumerate(tickers):
-        current_price = get_price(ticker)
-        if current_price <= target_prices[idx] and notSent[idx] == True and current_price != -10:
-            print("Price is lower than target, values: PRICE {}, TARGET {}".format(get_price(ticker),target_prices[idx])) 
-            sender.target_email(MAIL_PAU,ticker,False,"Pau")
-            notSent[idx] = False
-    print("{}:{}:{}, finished checking target".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
-    
-    return notSent
-
 def get_price(ticker):
+    global self_api
     a = ""
     if connection():
         try:
-            close = info.price(ticker)
+            close = self_api.get_position(ticker).current_price
+           
         except:
             return -10
     else:
@@ -114,12 +51,12 @@ def get_prices(tickers):
     return prices
 
 def get_change(ticker):
-    price = get_price(ticker)
+    global self_api
     try:
-        percent_change = info.change(ticker)
+        return self_api.get_position(ticker).change_today
     except:
         return -101
-        #print('Error downloading data | Ticker: ' + ticker )
+        print('Error downloading data | Ticker: ' + ticker)
     return percent_change
 
 def addzero(string):
@@ -130,128 +67,59 @@ def addzero(string):
         
 def check_losses_and_wins5(tickers):
     global NOTSENT1
+    global self_api
     pct = 5
     prices = get_prices(tickers)
-    data_found = True
     print("{}:{}:{}, start checking 5%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
     for idx,ticker in enumerate(tickers):
-        if info.is_traded(ticker) == False:
-            pass
+        if prices[idx] == -10:
+            data_found = False
         else:
-            if prices[idx] == -10:
-                data_found = False
-            if data_found:
-                change = get_change(ticker)
+            change = get_change(ticker)
                 if 5.0 < abs(change) and connection() and change != -101 and NOTSENT1[ticker] == True:                        
-                    for p in d:
-                        if change < 0 and 1 in d[p].notifications:
-                            if tickers[idx] in d[p].tickers:
-                                print("5% down: " + str(tickers[idx]) + " " + str(p))
-                                sender.loss_email(d[p].email,tickers[idx],prices[idx],change,False)
-                    
-                        elif change > 0 and 2 in d[p].notifications:
-                            if tickers[idx] in d[p].tickers:
-                                print("5% up: " + str(tickers[idx]) + " " + str(p))
-                                sender.win_email(d[p].email,tickers[idx],prices[idx],change)
-                                
+                    if change < 0:
+                        if self_api.get_position(tickers[idx]).side == 'long':
+                            sender.loss_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
+                        else:
+                            sender.win_email_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
+                        
+                    else:
+                         if self_api.get_position(tickers[idx]).side == 'long':
+                            sender.win_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
+                        else:
+                            sender.loss_email_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
                     NOTSENT1[ticker] = False
             else:
                 print("Ticker {} is causing a problem.".format(ticker))
                 data_found = True
     print("{}:{}:{}, finished checking 5%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
-def check_losses_and_wins10(tickers):
-    global NOTSENT2
-    print("{}:{}:{}, start checking 10%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
-    pct = 10
-    prices = get_prices(tickers)
-    data_found = True
-    for idx,price in enumerate(prices):  
-        if info.is_traded(tickers[idx]) == False:
-            pass
-        else:
-            if price == -10:
-                data_found = False
-            if data_found:
-                change = get_change(tickers[idx])
-                if 10.0 < abs(change) and connection() and change != -101 and NOTSENT2[tickers[idx]] == True:                        
-                    for p in d:
-                        if 4 in d[p].notifications:
-                            if change < 0:
-                                if tickers[idx] in d[p].tickers:
-                                    print("10% down: " + str(tickers[idx]) + " " + str(p))
-                                    sender.loss_email(d[p].email,tickers[idx],prices[idx],change,False)
-                                    
-                            elif change > 0:
-                                if tickers[idx] in d[p].tickers and 3 in d[p].notifications:
-                                    print("10% up: " + str(tickers[idx]) + " " + str(p))
-                                    sender.win_email(d[p].email,tickers[idx],prices[idx],change)
-                    NOTSENT2[tickers[idx]] = False
-            else:
-                print("Ticker {} is causing a problem.".format(tickers[idx]))
-                data_found = True
-    
-    print("{}:{}:{}, finished checking 10%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
                                 
 def reset_everything():
-    global d
     global NOTSENT1
     global NOTSENT2
-    ALL_TICKERS,NOTSENT1,NOTSENT2 = get_tickers(d)
+    global ALL_TICKERS
+    ALL_TICKERS,NOTSENT1,NOTSENT2 = get_all_tickers()
     DAILY_NOTSENT = True
     TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
     return True
     
 def weekly_report():
-    for person in d:
-        if 3 in d[person].notifications:
-            Emailer().weekly_email(d[person].email,d[person].tickers,d[person].name)
+    Emailer().weekly_email(MAIL_PAU,get_all_tickers()[0],"Pau")
     
 def monthly_report():
-    for person in d:
-        if 3 in d[person].notifications:
-            Emailer().monthly_email(d[person].email,d[person].tickers,d[person].name)
-    
-def weekend():
-    day = datetime.today().isoweekday()
-    if day == 6:
-        if datetime.today().day == 1:
-            monthly_report()
-        weekly_report()
-    while day == 6 or day == 7:
-        if datetime.today().day == 1:
-            monthly_report()
-        time.sleep(28888)
-        day = datetime.today().isoweekday()
-        
-def sleeping(wakeup):
-    day = datetime.today()
-    h = day.hour
-    
-    if h >= 21:
-        if datetime.today().day == 1:
-            monthly_report()
-        print("Going to sleep.")
-        t = 3610*3
-        time.sleep(t)
-        day = datetime.today()
-        h = day.hour
-        m = day.minute
-        t = 60 * ((30+60*(int(wakeup)-h)) - m)
-        time.sleep(t)
-        d = update_dict()
-        reset_everything()
-        print("Market open in Europe! " + str(datetime.today()))
-        h = datetime.today().hour
-        return True
-    elif h < 7:
-        t = 60 * ((30+60*(7-h)) - datetime.today().minute)
-        time.sleep(t)
-        d = update_dict()
-        reset_everything()
-        print("Markets open in Europe! " + str(datetime.today()))
-        
-        return True
-    return False
+    Emailer().monthly_email(MAIL_PAU,get_all_tickers()[0],"Pau")
+
+
+def sign_in():
+    API_KEY,SECRET_KEY = get_keys()
+    rest_api = REST(API_KEY, SECRET_KEY, 'https://api.alpaca.markets')
+    return rest_api
+def get_all_tickers():    
+    tickers = []
+    for pos in rest_api.list_positions():
+        print(pos)
+        tickers.append(pos.symbol)
+    return tickers, [True] * len(tickers), [True] * len(tickers)
 
 def start_message():
     day = datetime.today()
@@ -261,54 +129,34 @@ def main():
     reset_everything()
     DAILY_NOTSENT = True
     TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
-    while True:        
-        global checkpoint
-        global d
-        global NOTSENT1
-        global NOTSENT2
-        checkpoint = 1
-        start_message()
-        checkpoint = 2
-        weekend()
-        checkpoint = 3
-        if sleeping(7):
-            try:
-                d = update_dict()
-            except:
-                print("Couldn't update user dictionary.")
-            DAILY_NOTSENT = True
-            TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
-            ALL_TICKERS,NOTSENT1,NOTSENT2 = get_tickers(d)
-        
-        checkpoint = 4
-        check_losses_and_wins5(ALL_TICKERS)
-        
-        checkpoint = 5
-        check_losses_and_wins10(ALL_TICKERS)
-        
-        checkpoint = 6
-        if connection():
-            TARGET_NOT_SENT = allprices(TARGET_TICKERS,TARGET_PRICES,TARGET_NOT_SENT)     # check prices w targets and email if necessary. If emailed, change notsent.
-        checkpoint = 7
-        day = datetime.today()
-        if DAILY_NOTSENT and datetime.today().hour == 14:
-            for p in d:
-                if 3 in d[p].notifications:
-                    sender.daily_email(d[p].email,d[p].tickers,d[p].name)
-                    DAILY_NOTSENT = False
-        time.sleep(450)
-
-d = update_dict()
+    month = 20
+    while True:
+        while mkt_open():
+            open = True
+            sign_in()
+            ALL_TICKERS = get_all_tickers()[0]
+            check_losses_and_wins5(ALL_TICKERS)
+            weekend = False
+        if open:
+            Emailer.daily_email(MAIL_PAU,get_all_tickers(),"Pau")
+            open = False
+            reset_everything()
+        if (datetime.today().weekday() + 1) == 4:
+            weekly_report()
+        if month !=  datetime.today().month:
+            monthly_report()
+            
+            
+API_KEY,SECRET_KEY = get_keys()
+rest_api = REST(API_KEY, SECRET_KEY, 'https://api.alpaca.markets')       
 info = current_Info()
 DAILY_NOTSENT = True
 MAIL_PAU = "paucase4@gmail.com"
 sender = Emailer()
-TARGET_TICKERS = ["V","T","EA","AAPL","GOOGL","AMZN","ADBE"]
-TARGET_PRICES = [200,27,125,120,1900,2950,440]
-checkpoint = 0
-ALL_TICKERS,NOTSENT1,NOTSENT2 = get_tickers(d)
+ALL_TICKERS,NOTSENT1,NOTSENT2 = get_tickers()
 
 def error_message(e,checkpoint):
+    checkpoint = 2 # sempre
     exception_type, exception_object, exception_traceback = sys.exc_info()
     line_number = exception_traceback.tb_lineno
     filename = exception_traceback.tb_frame.f_code.co_filename
