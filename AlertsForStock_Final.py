@@ -76,19 +76,19 @@ def check_losses_and_wins5(tickers):
             data_found = False
         else:
             change = get_change(ticker)
-                if 5.0 < abs(change) and connection() and change != -101 and NOTSENT1[ticker] == True:                        
-                    if change < 0:
-                        if self_api.get_position(tickers[idx]).side == 'long':
-                            sender.loss_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
-                        else:
-                            sender.win_email_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
-                        
+            if 5.0 < abs(change) and connection() and change != -101 and NOTSENT1[ticker] == True:                        
+                if change < 0:
+                    if self_api.get_position(tickers[idx]).side == 'long':
+                        sender.loss_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
                     else:
-                         if self_api.get_position(tickers[idx]).side == 'long':
-                            sender.win_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
-                        else:
-                            sender.loss_email_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
-                    NOTSENT1[ticker] = False
+                        sender.win_email_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
+                    
+                else:
+                     if self_api.get_position(tickers[idx]).side == 'long':
+                        sender.win_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
+                    else:
+                        sender.loss_email_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
+                NOTSENT1[ticker] = False
             else:
                 print("Ticker {} is causing a problem.".format(ticker))
                 data_found = True
@@ -130,7 +130,7 @@ def main():
     DAILY_NOTSENT = True
     TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
     month = 20
-    while True:
+    while True: 
         while mkt_open():
             open = True
             sign_in()
@@ -153,7 +153,7 @@ info = current_Info()
 DAILY_NOTSENT = True
 MAIL_PAU = "paucase4@gmail.com"
 sender = Emailer()
-ALL_TICKERS,NOTSENT1,NOTSENT2 = get_tickers()
+ALL_TICKERS,NOTSENT1,NOTSENT2 = get_all_tickers()
 
 def error_message(e,checkpoint):
     checkpoint = 2 # sempre
