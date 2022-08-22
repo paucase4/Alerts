@@ -56,11 +56,10 @@ def get_prices(tickers):
 def get_change(ticker):
     global rest_api
     try:
-        return rest_api.get_position(ticker).change_today
+        return float(rest_api.get_position(ticker).change_today)
     except:
         return -101
         print('Error downloading data | Ticker: ' + ticker)
-    return float(percent_change)
 
 def addzero(string):
     if len(string) == 1:
@@ -100,7 +99,6 @@ def reset_everything():
     global ALL_TICKERS
     ALL_TICKERS,NOTSENT1 = get_all_tickers()
     DAILY_NOTSENT = True
-    TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
     return True
     
 def weekly_report():
@@ -129,7 +127,6 @@ def start_message():
 def main():
     reset_everything()
     DAILY_NOTSENT = True
-    TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
     month = 20
     global rest_api
     global NOTSENT1
@@ -138,8 +135,10 @@ def main():
             open = True
             sign_in()
             ALL_TICKERS = get_all_tickers()[0]
+            print("Checking tickers: " + str(ALL_TICKERS))
             check_losses_and_wins5(ALL_TICKERS)
             weekend = False
+            time.sleep(1000)
         if open:
             Emailer.daily_email(MAIL_PAU,get_all_tickers(),"Pau")
             open = False
@@ -171,6 +170,7 @@ try:
     main()
 except Exception as e:
     Emailer().error_email(e)
+    checkpoint = 0
     error_message = error_message(e,checkpoint)
     print(error_message)
     Emailer().error_email(error_message) # report error to host
