@@ -29,12 +29,15 @@ def connection():
     except:
         return False
 
+def mkt_open():
+    global rest_api
+    return rest_api.get_clock().is_open
 def get_price(ticker):
-    global self_api
+    global rest_api
     a = ""
     if connection():
         try:
-            close = self_api.get_position(ticker).current_price
+            close = rest_api.get_position(ticker).current_price
            
         except:
             return -10
@@ -51,13 +54,13 @@ def get_prices(tickers):
     return prices
 
 def get_change(ticker):
-    global self_api
+    global rest_api
     try:
-        return self_api.get_position(ticker).change_today
+        return rest_api.get_position(ticker).change_today
     except:
         return -101
         print('Error downloading data | Ticker: ' + ticker)
-    return percent_change
+    return float(percent_change)
 
 def addzero(string):
     if len(string) == 1:
@@ -67,38 +70,35 @@ def addzero(string):
         
 def check_losses_and_wins5(tickers):
     global NOTSENT1
-    global self_api
+    global rest_api
     pct = 5
     prices = get_prices(tickers)
     print("{}:{}:{}, start checking 5%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
     for idx,ticker in enumerate(tickers):
         if prices[idx] == -10:
             data_found = False
+            print("Ticker {} is causing a problem.".format(ticker))
         else:
             change = get_change(ticker)
-            if 5.0 < abs(change) and connection() and change != -101 and NOTSENT1[ticker] == True:                        
+            if 5.0 < abs(change) and connection() and change != -101 and NOTSENT1[idx] == True:                        
                 if change < 0:
-                    if self_api.get_position(tickers[idx]).side == 'long':
-                        sender.loss_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
+                    if rest_api.get_position(tickers[idx]).side == 'long':
+                        sender.loss_email(MAIL_PAU,tickers[idx],prices[idx],change,True)
                     else:
-                        sender.win_email_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
+                        sender.win_email_email(MAIL_PAU,tickers[idx],prices[idx],change)
                     
                 else:
-                     if self_api.get_position(tickers[idx]).side == 'long':
-                        sender.win_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
+                     if rest_api.get_position(tickers[idx]).side == 'long':
+                        sender.win_email(MAIL_PAU,tickers[idx],prices[idx],change)
                     else:
-                        sender.loss_email_email(MAIL_PAU,tickers[idx],prices[idx],change,False)
-                NOTSENT1[ticker] = False
-            else:
-                print("Ticker {} is causing a problem.".format(ticker))
-                data_found = True
+                        sender.loss_email_email(MAIL_PAU,tickers[idx],prices[idx],change, True)
+                NOTSENT1[idx] = False    
     print("{}:{}:{}, finished checking 5%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
                                 
 def reset_everything():
     global NOTSENT1
-    global NOTSENT2
     global ALL_TICKERS
-    ALL_TICKERS,NOTSENT1,NOTSENT2 = get_all_tickers()
+    ALL_TICKERS,NOTSENT1 = get_all_tickers()
     DAILY_NOTSENT = True
     TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
     return True
@@ -116,10 +116,11 @@ def sign_in():
     return rest_api
 def get_all_tickers():    
     tickers = []
+    notsent1 = {}
     for pos in rest_api.list_positions():
-        print(pos)
         tickers.append(pos.symbol)
-    return tickers, [True] * len(tickers), [True] * len(tickers)
+        notsent1[pos.symbol] = [True]
+    return tickers, notsent1
 
 def start_message():
     day = datetime.today()
@@ -130,6 +131,8 @@ def main():
     DAILY_NOTSENT = True
     TARGET_NOT_SENT = [True]*len(TARGET_TICKERS)
     month = 20
+    global rest_api
+    global NOTSENT1
     while True: 
         while mkt_open():
             open = True
@@ -141,10 +144,12 @@ def main():
             Emailer.daily_email(MAIL_PAU,get_all_tickers(),"Pau")
             open = False
             reset_everything()
+            ALL_TICKERS, NOTSENT1 = get_all_tickers()
         if (datetime.today().weekday() + 1) == 4:
             weekly_report()
         if month !=  datetime.today().month:
             monthly_report()
+        
             
             
 API_KEY,SECRET_KEY = get_keys()
@@ -153,7 +158,7 @@ info = current_Info()
 DAILY_NOTSENT = True
 MAIL_PAU = "paucase4@gmail.com"
 sender = Emailer()
-ALL_TICKERS,NOTSENT1,NOTSENT2 = get_all_tickers()
+ALL_TICKERS,NOTSENT1 = get_all_tickers()
 
 def error_message(e,checkpoint):
     checkpoint = 2 # sempre
