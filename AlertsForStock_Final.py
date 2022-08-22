@@ -88,7 +88,7 @@ def check_losses_and_wins5(tickers):
                         sender.win_email_email(MAIL_PAU,tickers[idx],prices[idx],change)
                     
                 else:
-                     if rest_api.get_position(tickers[idx]).side == 'long':
+                    if rest_api.get_position(tickers[idx]).side == 'long':
                         sender.win_email(MAIL_PAU,tickers[idx],prices[idx],change)
                     else:
                         sender.loss_email_email(MAIL_PAU,tickers[idx],prices[idx],change, True)
