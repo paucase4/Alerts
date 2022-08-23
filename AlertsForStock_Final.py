@@ -14,7 +14,7 @@ from Client import Client
 from HTML_Email import Emailer
 
 def get_keys():
-    path = ""
+    path = "/media/pi/KINGSTON1/alpaca"
     with open(path + '/api_key.txt','rb') as f:
         key = str(f.readlines()[0])[2:-1]
     with open(path + '/secret_key.txt','rb') as f:
@@ -137,10 +137,9 @@ def main():
             ALL_TICKERS = get_all_tickers()[0]
             print("Checking tickers: " + str(ALL_TICKERS))
             check_losses_and_wins5(ALL_TICKERS)
-            weekend = False
             time.sleep(1000)
         if open:
-            Emailer.daily_email(MAIL_PAU,get_all_tickers(),"Pau")
+            sender.daily_email(MAIL_PAU,get_all_tickers(),"Pau")
             open = False
             reset_everything()
             ALL_TICKERS, NOTSENT1 = get_all_tickers()
@@ -159,8 +158,8 @@ MAIL_PAU = "paucase4@gmail.com"
 sender = Emailer()
 ALL_TICKERS,NOTSENT1 = get_all_tickers()
 
-def error_message(e,checkpoint):
-    checkpoint = 2 # sempre
+def error_message(e):
+    checkpoint = None
     exception_type, exception_object, exception_traceback = sys.exc_info()
     line_number = exception_traceback.tb_lineno
     filename = exception_traceback.tb_frame.f_code.co_filename
@@ -170,7 +169,6 @@ try:
     main()
 except Exception as e:
     Emailer().error_email(e)
-    checkpoint = 0
-    error_message = error_message(e,checkpoint)
+    error_message = error_message(e,0)
     print(error_message)
     Emailer().error_email(error_message) # report error to host
