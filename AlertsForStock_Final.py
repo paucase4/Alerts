@@ -14,7 +14,7 @@ from Client import Client
 from HTML_Email import Emailer
 
 def get_keys():
-    path = "/media/pi/KINGSTON1/alpaca"
+    path = "/media/pi/KINGSTON/alpaca"
     with open(path + '/api_key.txt','rb') as f:
         key = str(f.readlines()[0])[2:-1]
     with open(path + '/secret_key.txt','rb') as f:
