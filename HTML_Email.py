@@ -25,7 +25,7 @@ MOTIVATION = ["willitbeeasy.jpg","struggle_today.jpg","comeback_stronger.jpg"]
 SMTP_SERVER = 'smtp.gmail.com'
 SMTP_PORT = 587 
 GMAIL_USERNAME = 'stocknotificacions@gmail.com' 
-GMAIL_PASSWORD = 'St0ck1nf0'
+GMAIL_PASSWORD = ''
 info = current_Info()
 
 def get_pct(ticker):

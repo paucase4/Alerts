@@ -79,7 +79,7 @@ def check_losses_and_wins5(tickers):
             print("Ticker {} is causing a problem.".format(ticker))
         else:
             change = get_change(ticker)
-            if 5.0 < abs(change) and connection() and change != -101 and NOTSENT1[idx] == True:                        
+            if 5.0 < abs(change) and connection() and change != -101 and NOTSENT1[ticker] == True:                        
                 if change < 0:
                     if rest_api.get_position(tickers[idx]).side == 'long':
                         sender.loss_email(MAIL_PAU,tickers[idx],prices[idx],change,True)
@@ -91,7 +91,7 @@ def check_losses_and_wins5(tickers):
                         sender.win_email(MAIL_PAU,tickers[idx],prices[idx],change)
                     else:
                         sender.loss_email_email(MAIL_PAU,tickers[idx],prices[idx],change, True)
-                NOTSENT1[idx] = False    
+                NOTSENT1[ticker] = False    
     print("{}:{}:{}, finished checking 5%".format(datetime.today().hour,datetime.today().minute,datetime.today().second))
                                 
 def reset_everything():
@@ -130,6 +130,7 @@ def main():
     month = 20
     global rest_api
     global NOTSENT1
+    open = True
     while True: 
         while mkt_open():
             open = True
@@ -139,7 +140,7 @@ def main():
             check_losses_and_wins5(ALL_TICKERS)
             time.sleep(1000)
         if open:
-            sender.daily_email(MAIL_PAU,get_all_tickers(),"Pau")
+            sender.daily_email(MAIL_PAU,get_all_tickers()[0],"Pau")
             open = False
             reset_everything()
             ALL_TICKERS, NOTSENT1 = get_all_tickers()
