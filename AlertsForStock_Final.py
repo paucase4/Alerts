@@ -169,6 +169,6 @@ try:
     main()
 except Exception as e:
     Emailer().error_email(e)
-    error_message = error_message(e,0)
+    error_message = error_message(e)
     print(error_message)
     Emailer().error_email(error_message) # report error to host

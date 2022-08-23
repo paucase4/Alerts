@@ -299,21 +299,15 @@ def main():
                     DAILY_NOTSENT = False
         time.sleep(450)
 
-d = update_dict()
-info = current_Info()
-DAILY_NOTSENT = True
+
+
 MAIL_PAU = "paucase4@gmail.com"
-sender = Emailer()
-TARGET_TICKERS = ["V","T","EA","AAPL","GOOGL","AMZN","ADBE"]
-TARGET_PRICES = [200,27,125,120,1900,2950,440]
-checkpoint = 0
-ALL_TICKERS,NOTSENT1,NOTSENT2 = get_tickers(d)
-
-
 def main():
     global d
     global ALL_TICKERS
-    check_losses_and_wins5(ALL_TICKERS)
+    Emailer().monthly_email(MAIL_PAU,["TSLA","AAPL"],"Pau")
+    Emailer().weekly_email(MAIL_PAU,["TSLA","AAPL"],"Pau")
+    Emailer().daily_email(MAIL_PAU,["TSLA","AAPL"],"Pau")
 #     print()
 #     print("3")
 #     recipient = "paucase4@gmail.com"
